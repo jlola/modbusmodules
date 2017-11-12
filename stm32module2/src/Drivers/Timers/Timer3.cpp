@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 #include <stm32f0xx_tim.h>
 #include <stm32f0xx_rcc.h>
 #include <stm32f0xx_misc.h>
@@ -107,4 +109,6 @@ extern "C" void TIM3_IRQHandler()
 
 
 }
+
+#endif
 

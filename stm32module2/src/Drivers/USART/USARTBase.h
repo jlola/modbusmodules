@@ -37,6 +37,7 @@ public:
 	uint32_t GetSpeed();
 	virtual void SetTimeOut(uint8_t bits)=0;
 	virtual void EnableTimeout(bool enable)=0;
+	virtual ~USARTBase();
 };
 
 #endif

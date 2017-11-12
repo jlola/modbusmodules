@@ -26,6 +26,7 @@
  */
 
 // ----------------------------------------------------------------------------
+#ifndef UNITTEST
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +35,6 @@
 #include "Settings.h"
 #include "Queue.h"
 #include "Random.h"
-#include "USART2.h"
 #include "IOPin.h"
 #include "RS485.h"
 #include "DeviceFunctions.h"
@@ -46,6 +46,7 @@
 #include "ModbusSettings.h"
 #include "string.h"
 #include <stm32f0xx_tim.h>
+#include <USART1.h>
 #include "CFlash.h"
 #include "IWDG/Watchdog.h"
 
@@ -76,13 +77,7 @@ main(int argc, char* argv[])
 {
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA, ENABLE);
 
-//	uint16_t test[3];
-//	test[0] = 1;
-//	test[1] = 2;
-//	test[2] = 3;
-//	CFlash::Write16(test,3);
-
-	IOPin powerled(POWER_LED_PORT,POWER_LED_PIN,IODirection::IOOutput);
+	IOPin powerled(POWER_LED_PORT,POWER_LED_PIN,IODirection::IOOutput,0);
 	powerled.Set(true);
 
 	USARTBase* usart1 = CUSART1::Instance();
@@ -92,16 +87,15 @@ main(int argc, char* argv[])
 	OneWireThread owthread(Timer3::Instance(),OW_PORT,OW_PIN,OW_PIN_SOURCE);
 
 //	//pin for receive enabled driving
-	IOPin pre(GPIOA,GPIO_Pin_0,IOOutput);
+	IOPin pre(GPIOA,GPIO_Pin_0,IOOutput,0);
 	pre.Set(false);
 	RS485 rs485(usart1, NULL,&pre, 4*1000000/RS485_SPEED);
 	RS485SetInstance(&rs485);
 
 	SlaveRtu slave(rs485,1);
-	DeviceFunctions dev;
-
 	OneWireManager owmanager(&owthread,&slave);
-	dev.Init(&slave,&owmanager);
+	DeviceFunctions dev(&slave,&owmanager);
+	dev.Init();
 	owmanager.StartScan();
 
 	char pdata;
@@ -133,5 +127,7 @@ main(int argc, char* argv[])
 }
 
 #pragma GCC diagnostic pop
+
+#endif
 
 // ----------------------------------------------------------------------------

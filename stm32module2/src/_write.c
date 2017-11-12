@@ -24,7 +24,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
+#ifndef UNITTEST
 // Do not include on semihosting and when freestanding
 #if !defined(OS_USE_SEMIHOSTING) && !(__STDC_HOSTED__ == 0)
 
@@ -70,3 +70,5 @@ _write (int fd __attribute__((unused)), const char* buf __attribute__((unused)),
 // ----------------------------------------------------------------------------
 
 #endif // !defined(OS_USE_SEMIHOSTING) && !(__STDC_HOSTED__ == 0)
+
+#endif

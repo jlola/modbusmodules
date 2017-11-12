@@ -1,11 +1,19 @@
+#ifndef UNITTEST
+
 #include "IOPin.h"
 
-IOPin::IOPin(GPIO_TypeDef* pGPIOx,uint16_t pGPIO_Pin,IODirection pdir)
+IOPin::IOPin(GPIO_TypeDef* pGPIOx,uint16_t pGPIO_Pin,IODirection pdir,uint8_t pinNumber)
 {
+	this->pinNumber = pinNumber;
 	GPIOx = pGPIOx;
 	GPIO_Pin = pGPIO_Pin;
 	dir = pdir;
 	Init();
+}
+
+uint8_t IOPin::GetPinNumber()
+{
+	return this->pinNumber;
 }
 
 void IOPin::Init()
@@ -47,4 +55,6 @@ bool IOPin::IsSet()
 		case IOOutput:
 			return GPIO_ReadOutputDataBit(GPIOx,GPIO_Pin)==Bit_SET ? true : false;
 	}
+	return false;
 }
+#endif

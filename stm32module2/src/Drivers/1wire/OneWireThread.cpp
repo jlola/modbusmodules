@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 #include <string.h>
 #include "OneWireThread.h"
 
@@ -602,6 +604,8 @@ uint16_t OneWireThread::OWCrc16(uint8_t* input, uint16_t len)
     }
     return crc;
 }
+#endif
+
 #endif
 
 #endif

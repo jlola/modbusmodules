@@ -5,6 +5,8 @@
  *      Author: pc
  */
 
+#ifndef UNITTEST
+
 #include "stm32f0xx_iwdg.h"
 #include "IWDG/Watchdog.h"
 
@@ -33,3 +35,4 @@ Watchdog::~Watchdog() {
 	// TODO Auto-generated destructor stub
 }
 
+#endif

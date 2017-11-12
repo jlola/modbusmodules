@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 #include "stm32f0xx_flash.h"
 #include "CFlash.h"
 #include "string.h"
@@ -35,3 +37,4 @@ void CFlash::Write16(uint16_t* address, size_t size)
 	FLASH_Lock();
 }
 
+#endif

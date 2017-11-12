@@ -13,8 +13,12 @@
 #define RAM_SIZE  0x1000
 
 #include <stdint-gcc.h>
+
+#ifndef TEST
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx.h"
+#endif
+
 #include "rs485.h"
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -34,7 +38,8 @@
  * get me
  */
 #include "Settings.h"
-#include "IWriteReg.h"
+#include "IModbusObject.h"
+#include "IModbusSlave.h"
 
 #ifndef SLAVERTU_BITINPUTS
 #define SLAVERTU_BITINPUTS 100
@@ -51,22 +56,15 @@
 
 #define SLAVERTU_GETBYTES(x) (x + 7) >> 3
 
-class SlaveRtu// : public IModbusRegister
+class SlaveRtu : public IModbusSlave
 {
-//	 typedef struct {
-//		 uint8_t Address;
-//		 uint8_t Function;
-//		 uint16_t StartAddr;
-//		 uint16_t CountRegs;
-//
-//	 } slaveRtu_t;
 	int resolversCount;
-	IWriteReg** writeResolvers;
+	IModbusObject** writeResolvers;
 public:
 	SlaveRtu(RS485 & usart, uint8_t address);
 	virtual ~SlaveRtu();
 
-	void init(IWriteReg* writeResolvers[],int resolversCount);
+	void init(IModbusObject* writeResolvers[],size_t resolversCount);
 	void setAddress(uint8_t address);
 	void handler(const char* pchar, uint16_t length_rx);
 	void handleTimIrq();
@@ -77,14 +75,14 @@ public:
 	void initCoils(uint16_t length);
 	void initHoldings(uint16_t length);
 
-	void setBitInput(uint16_t index, BitAction state);
-	BitAction getBitInput(uint16_t index);
+	void setBitInput(uint16_t index, Bit state);
+	Bit getBitInput(uint16_t index);
 
 	void setShortInput(uint16_t index, uint16_t val);
 	uint16_t getShortInput(uint16_t index);
 
-	void setCoil(uint16_t index, BitAction state);
-	BitAction getCoil(uint16_t index);
+	void setCoil(uint16_t index, Bit state);
+	Bit getCoil(uint16_t index);
 
 	bool setHoldingResolve(uint16_t index, uint16_t val);
 

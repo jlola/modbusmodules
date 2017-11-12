@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 #include "stm32f0xx.h"
 #include "stm32f0xx_misc.h"			 // I recommend you have a look at these in the ST firmware folder
 #include "stm32f0xx_usart.h" // under Libraries/STM32F4xx_StdPeriph_Driver/inc and src
@@ -10,6 +12,7 @@ USARTBase::USARTBase()
 {
 	isinit = false;
 	baudrate = 0;
+	usart = NULL;
 }
 
 USART_TypeDef* USARTBase::GetUsart()
@@ -56,4 +59,7 @@ void USARTBase::Send(char* pchar,size_t start,size_t len)
 	}
 }
 
+USARTBase::~USARTBase(){
+}
 
+#endif

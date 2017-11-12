@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 #include "OneWire.h"
 
 extern void DelayuS(uint32_t nCount);
@@ -425,6 +427,8 @@ uint16_t OWCrc16(uint8_t* input, uint16_t len)
     }
     return crc;
 }
+#endif
+
 #endif
 
 #endif

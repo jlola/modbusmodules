@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 #include "ds18B20.h"
 #include "pt.h"
 #include "string.h"
@@ -5,6 +7,8 @@
 DS18B20::DS18B20()
 {
 	PT_INIT(&ptDS18b20);
+	baseAddr = 0;
+	slave = NULL;
 	ow = NULL;
 }
 
@@ -117,3 +121,5 @@ uint8_t DS18B20::Read()
 
 	PT_END(&ptDS18b20);
 }
+
+#endif

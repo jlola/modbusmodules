@@ -2,9 +2,11 @@
 #define _OUTPUTREG_H_
 
 #include <stdint.h>
+#include <stddef.h>
 #include "IOPin.h"
 #include "IWriteReg.h"
-#include "slave-rtu.h"
+#include "IModbusSlave.h"
+
 
 typedef struct
 {
@@ -16,16 +18,20 @@ typedef struct
 
 class OutputReg : public IWriteReg
 {
-	uint8_t pinNumber;
 	uint16_t offset;
 	IOPin* pin;
-	SlaveRtu* slave;
+	IModbusSlave* slave;
+
 public:
-	OutputReg();
-	void Init(uint16_t offset,IOPin* pin,SlaveRtu* slave,uint8_t pinNumber);
+	OutputReg(IOPin* pin,IModbusSlave* slave);
 	void Refresh();
 	bool IsValid(uint16_t index, uint16_t reg);
 	bool Write(uint16_t index, uint16_t reg);
+	EDeviceType GetDeviceType();
+	EModbusFunctions GetModbusFunc();
+	uint16_t GetSizeInWords();
+	void SetOffset(uint16_t offset);
+	~OutputReg();
 };
 
 

@@ -1,3 +1,6 @@
+
+#ifndef UNITTEST
+
 #include "RS485.h"
 #include "USARTBase.h"
 #include "Settings.h"
@@ -188,3 +191,5 @@ void RS485::Send(char* pchar,char len)
 //	if (de!=NULL) de->Set(false);
 //	if (re!=NULL) re->Set(false);
 //}
+
+#endif

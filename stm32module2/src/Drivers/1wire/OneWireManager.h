@@ -6,30 +6,49 @@
 #include "ds18B20.h"
 #include "slave-rtu.h"
 #include "IWriteReg.h"
+#include "IModbusObject.h"
+
+#define DS18B20MAXCOUNT 			10
+#define OW_ADDRESS_VALUE offset
+#define OW_SCAN_OFFSET				OW_ADDRESS_VALUE+0
+#define OW_COUNT_OFFSET 			OW_ADDRESS_VALUE+1
+#define OW_BOARD_PIN				OW_ADDRESS_VALUE+2
+#define OW_RESET_RESULT				OW_ADDRESS_VALUE+3
+
+#define OW_DEVICES_OFFSET 			OW_ADDRESS_VALUE+5
 
 class OneWireManager : public IWriteReg
 {
+	OneWireThread* ow;
 	SlaveRtu* slave;
 	DS18B20 devices[DS18B20MAXCOUNT];
-	OneWireThread* ow;
 	pt ptScan;
 	pt ptRefresh;
+	uint16_t offset;
 
+	uint8_t RefreshThread();
 public:
 	OneWireManager(OneWireThread* pow,SlaveRtu* slave);
+
+    void SetOffset(uint16_t offset);
 
 	uint8_t GetCount();
 	void SetCount(uint8_t count);
 
 	void ModbusSetResetResult(EOWReset reset);
 	uint8_t Scan();
-	uint8_t Refresh();
+	void Refresh();
 
 	bool IsValid(uint16_t index, uint16_t reg);
 
 	bool Write(uint16_t index, uint16_t reg);
 
 	void StartScan();
+
+	EDeviceType GetDeviceType();
+	EModbusFunctions GetModbusFunc();
+	uint16_t GetSizeInWords();
+
 };
 
 

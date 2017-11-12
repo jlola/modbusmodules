@@ -53,12 +53,12 @@ typedef struct{
 #endif
 }OWire;
 
-typedef enum EOWReset
+typedef enum
 {
 	EOWResetNone = 0,
 	EOWResetPresent = 1,
 	EOWResetShort = 2
-};
+} EOWReset;
 
 
 

@@ -1,3 +1,5 @@
+#ifndef UNITTEST
+
 /*
  * slave-rtu.cpp
  *
@@ -113,7 +115,7 @@ void SlaveRtu::initHoldings(uint16_t length) {
 	memset(_holdings, 0, _holding_length * sizeof(uint16_t));
 }
 
-void SlaveRtu::init(IWriteReg** writeResolvers,int resolversCount) {
+void SlaveRtu::init(IModbusObject* writeResolvers[], size_t resolversCount) {
 	//_usart.init();
 	this->writeResolvers = writeResolvers;
 	this->resolversCount = resolversCount;
@@ -203,14 +205,14 @@ void SlaveRtu::appendCrcAndReply(uint8_t length_tx) {
 }
 
 //****************get set*****************************//
-void SlaveRtu::setCoil(uint16_t index, BitAction state) {
+void SlaveRtu::setCoil(uint16_t index, Bit state) {
 	assert_param(index < _coil_length);
-	bitWrite(_coils[index >> 3], index & 0x07, state == Bit_SET);
+	bitWrite(_coils[index >> 3], index & 0x07, state == BitSET);
 }
 
-BitAction SlaveRtu::getCoil(uint16_t index) {
+Bit SlaveRtu::getCoil(uint16_t index) {
 	assert_param(index < _coil_length);
-	return bitRead(_coils[index >> 3],index & 0x07) ? Bit_SET : Bit_RESET;
+	return bitRead(_coils[index >> 3],index & 0x07) ? BitSET : BitRESET;
 }
 
 uint8_t SlaveRtu::onReadCoils(uint8_t * p_length_tx) {
@@ -223,7 +225,7 @@ uint8_t SlaveRtu::onReadCoils(uint8_t * p_length_tx) {
 
 	for (uint16_t i = 0; i < length; i++) {
 		bitWrite(_buff_tx[3 + (i >> 3)], i & 0x07,
-			this->getCoil(address + i) == Bit_SET);
+			this->getCoil(address + i) == BitSET);
 	}
 
 	_buff_tx[2] = (length + 7) >> 3;
@@ -232,14 +234,14 @@ uint8_t SlaveRtu::onReadCoils(uint8_t * p_length_tx) {
 	return 0;
 }
 
-void SlaveRtu::setBitInput(uint16_t index, BitAction state) {
+void SlaveRtu::setBitInput(uint16_t index, Bit state) {
 	assert_param(index < _bit_input_length);
-	bitWrite(_bit_inputs[index >> 3], index & 0x07, state == Bit_SET);
+	bitWrite(_bit_inputs[index >> 3], index & 0x07, state == BitSET);
 }
 
-BitAction SlaveRtu::getBitInput(uint16_t index) {
+Bit SlaveRtu::getBitInput(uint16_t index) {
 	assert_param(index < _bit_input_length);
-	return bitRead(_bit_inputs[index >> 3], index & 0x07) ? Bit_SET : Bit_RESET;
+	return bitRead(_bit_inputs[index >> 3], index & 0x07) ? BitSET : BitRESET;
 }
 
 uint8_t SlaveRtu::onReadBitInputs(uint8_t * p_length_tx) {
@@ -253,7 +255,7 @@ uint8_t SlaveRtu::onReadBitInputs(uint8_t * p_length_tx) {
 
 	for (uint16_t i = 0; i < length; i++)
 		bitWrite(_buff_tx[3 + (i >> 3)], i & 0x07,
-			this->getBitInput(address + i) == Bit_SET);
+			this->getBitInput(address + i) == BitSET);
 
 	_buff_tx[2] = (length + 7) >> 3;
 
@@ -268,7 +270,7 @@ uint8_t SlaveRtu::onWriteSingleCoil(uint8_t * p_length_tx) {
 	uint16_t address = make16(_buff_rx[2], _buff_rx[3]);
 	if (address >= _coil_length) return 0x02;
 
-	this->setCoil(address, val ? Bit_SET : Bit_RESET);
+	this->setCoil(address, val ? BitSET : BitRESET);
 
 	if (updateCoils(address, 1)) return 0x04;
 
@@ -288,7 +290,7 @@ uint8_t SlaveRtu::onWriteMultipleCoils(uint8_t length_rx, uint8_t * p_length_tx)
 
 	for (uint16_t i = 0; i < length; i++)
 		this->setCoil(index + i,
-		bitRead(_buff_rx[7 + (i >> 3)], i & 0x07) ? Bit_SET : Bit_RESET);
+		bitRead(_buff_rx[7 + (i >> 3)], i & 0x07) ? BitSET : BitRESET);
 
 	if (updateCoils(index, length)) return 0x04;
 
@@ -332,7 +334,7 @@ uint8_t SlaveRtu::onReadHoldings(uint8_t * p_length_tx) {
 
 	uint16_t index = make16(_buff_rx[2], _buff_rx[3]);
 
-	if (index>=0 && index < _holding_length)
+	if (index < _holding_length)
 	{
 		if (index + length > _holding_length) return 0x02;
 
@@ -447,3 +449,4 @@ uint8_t SlaveRtu::onWriteMultipleHoldings(uint8_t length_rx,
 	return 0;
 }
 
+#endif
