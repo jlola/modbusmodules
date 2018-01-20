@@ -1,5 +1,37 @@
-//#ifndef _MODBUSSETTINGS_H_
-//#define _MODBUSSETTINGS_H_
+#ifndef _MODBUSSETTINGS_H_
+#define _MODBUSSETTINGS_H_
+
+typedef enum
+{
+	EDeviceTypeNone,
+	EDeviceTypeBinInputs,
+	EDeviceTypeBinOutputs,
+	EDeviceTypeAInputs,
+	EDeviceTypeAOutputs,
+	EDeviceTypeDS18B20,
+	EDeviceTypeRFID
+} EDeviceType;
+
+typedef enum
+{
+	EModbusReadCoil=0x01,
+	EModbusReadDiscreteInput=0x02,
+	EModbusReadHoldingRegisters=0x03,
+	EModbusReadInputRegisters=0x04,
+	EModbusWriteCoil=0x05
+} EModbusFunctions;
+
+//------------Modbus---------------------//
+#define DEVICEBASE 						0
+#define DEVADDR_OFFSET					DEVICEBASE+0
+#define COUNT_OF_TYPES_OFFSET			DEVICEBASE+1
+#define TYPE_DEFS_OFFSET				DEVICEBASE+2
+#define RESET_REG_OFFSET				DEVICEBASE+3
+#define LAST_INDEX						DEVICEBASE+4
+
+#define TYPE_DEFS_START_ADDRESS			10
+////----------------Types def--------------------//
+
 //
 ////#include "stm32_lib/inc/stm32f0xx_"
 //#include "stm32f0xx.h"
@@ -113,4 +145,4 @@
 //#define OW_BOARD_PIN_VALUE			1
 //
 //
-//#endif
+#endif

@@ -2,6 +2,7 @@
 #define _IMODBUSREGISTER_H_
 
 #include <stddef.h>
+#include "IModbusObject.h"
 
 typedef enum
 {
@@ -41,7 +42,11 @@ public:
 	virtual Bit getCoil(uint16_t index)=0;
 
 	virtual bool setHolding(uint16_t index, uint16_t val)=0;
+	virtual bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length)=0;
+
 	virtual uint16_t getHolding( uint16_t index)=0;
+
+	virtual uint16_t GetMaxIndex()=0;
 public:
 	virtual ~IModbusSlave(){}
 };

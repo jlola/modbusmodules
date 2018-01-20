@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "IOPin.h"
+#include "IIOPin.h"
 #include "IWriteReg.h"
 #include "IModbusSlave.h"
 
@@ -19,11 +19,11 @@ typedef struct
 class OutputReg : public IWriteReg
 {
 	uint16_t offset;
-	IOPin* pin;
+	IIOPin* pin;
 	IModbusSlave* slave;
 
 public:
-	OutputReg(IOPin* pin,IModbusSlave* slave);
+	OutputReg(IIOPin* pin,IModbusSlave* slave);
 	void Refresh();
 	bool IsValid(uint16_t index, uint16_t reg);
 	bool Write(uint16_t index, uint16_t reg);

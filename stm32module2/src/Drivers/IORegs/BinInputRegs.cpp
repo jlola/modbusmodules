@@ -2,7 +2,7 @@
 
 #include "BinInputRegs.h"
 
-InputReg::InputReg(IOPin* pin, IModbusSlave* slave)
+InputReg::InputReg(IIOPin* pin, IModbusSlave* slave)
 {
 
 	this->pin = pin;

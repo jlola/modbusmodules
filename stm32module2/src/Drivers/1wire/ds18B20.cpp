@@ -1,5 +1,3 @@
-#ifndef UNITTEST
-
 #include "ds18B20.h"
 #include "pt.h"
 #include "string.h"
@@ -33,7 +31,7 @@ void DS18B20::SetTemp(uint16_t temp)
 }
 
 
-void DS18B20::Init(OneWireThread* owthread,uint8_t * owAddr,SlaveRtu* Slave, uint8_t BaseAddr)
+void DS18B20::Init(IOneWireThread* owthread,uint8_t * owAddr,IModbusSlave* Slave, uint8_t BaseAddr)
 {
 	baseAddr = BaseAddr;
 	slave = Slave;
@@ -121,5 +119,3 @@ uint8_t DS18B20::Read()
 
 	PT_END(&ptDS18b20);
 }
-
-#endif

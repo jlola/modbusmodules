@@ -8,8 +8,10 @@
 #include "USARTBase.h"
 
 
-USARTBase::USARTBase()
+USARTBase::USARTBase(USART_TypeDef* usart)
 {
+	this->usart = usart;
+	handler = NULL;
 	isinit = false;
 	baudrate = 0;
 	usart = NULL;
@@ -43,6 +45,29 @@ uint32_t USARTBase::GetSpeed()
 //	}
 //}
 
+void USARTBase::SetHandler(IUSARTHandler* handler)
+{
+	this->handler = handler;
+}
+
+ IUSARTHandler* USARTBase::GetHandler()
+{
+	return handler;
+}
+
+ void USARTBase::HWControlledDE(bool enable)
+ {
+ 	if (enable)
+ 	{
+ 		USART_Cmd(usart,DISABLE);
+ 		USART_DEPolarityConfig(usart,USART_DEPolarity_High);
+ 		USART_SetDEAssertionTime(usart,0x0F);
+ 		USART_SetDEDeassertionTime(usart,0x0F);
+ 		USART_DECmd(usart, ENABLE);
+ 		USART_Cmd(usart,ENABLE);
+ 	}
+ }
+
 void USARTBase::Send(char pchar)
 {
 
@@ -51,7 +76,7 @@ void USARTBase::Send(char pchar)
 	while (USART_GetFlagStatus(usart, USART_FLAG_TC) == RESET);
 }
 
-void USARTBase::Send(char* pchar,size_t start,size_t len)
+void USARTBase::Send(const char* pchar,size_t start,size_t len)
 {
 	for(size_t i = start;i<len;i++)
 	{

@@ -4,8 +4,9 @@
 #include "stdint.h"
 #include "pt.h"
 #include "ds18B20.h"
-#include "slave-rtu.h"
+#include "IModbusSlave.h"
 #include "IWriteReg.h"
+#include "IOneWireThread.h"
 #include "IModbusObject.h"
 
 #define DS18B20MAXCOUNT 			10
@@ -19,8 +20,8 @@
 
 class OneWireManager : public IWriteReg
 {
-	OneWireThread* ow;
-	SlaveRtu* slave;
+	IOneWireThread* ow;
+	IModbusSlave* slave;
 	DS18B20 devices[DS18B20MAXCOUNT];
 	pt ptScan;
 	pt ptRefresh;
@@ -28,7 +29,7 @@ class OneWireManager : public IWriteReg
 
 	uint8_t RefreshThread();
 public:
-	OneWireManager(OneWireThread* pow,SlaveRtu* slave);
+	OneWireManager(IOneWireThread* pow,IModbusSlave* slave);
 
     void SetOffset(uint16_t offset);
 

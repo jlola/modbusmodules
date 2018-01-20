@@ -6,19 +6,23 @@
 #include <stddef.h>
 #include "Timer3.h"
 
-ITimerHandler* Timer3::rec;
-
 Timer3::Timer3()
 {
+	tim = TIM3;
 	started = false;
 	Timer3::rec = NULL;
 	SetTimeUs(10);
 	periodus = 10;
 }
 
+void Timer3::Reset()
+{
+	TIM_SetCounter(tim,0);
+}
+
 void Timer3::SetReceiver(ITimerHandler* prec)
 {
-	Timer3::rec = prec;
+	this->rec = prec;
 }
 
 void Timer3::SetTimeUs(uint16_t Timeus)
@@ -47,8 +51,8 @@ void Timer3::Init()
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 
-	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
-	TIM_Cmd(TIM3, DISABLE);
+	TIM_ITConfig(tim, TIM_IT_Update, ENABLE);
+	TIM_Cmd(tim, DISABLE);
 
 	NVIC_InitTypeDef nvicStructure;
 	nvicStructure.NVIC_IRQChannel = TIM3_IRQn;
@@ -72,7 +76,7 @@ void Timer3::Start()
 	{
 		started = true;
 		/* TIM2 enable counter */
-		TIM_Cmd(TIM3, ENABLE);
+		TIM_Cmd(tim, ENABLE);
 	}
 }
 
@@ -82,7 +86,7 @@ void Timer3::Stop()
 	{
 		started = false;
 		/* TIM2 disable counter */
-		TIM_Cmd(TIM3, DISABLE);
+		TIM_Cmd(tim, DISABLE);
 
 		Timer3::rec = NULL;
 	}
@@ -96,13 +100,12 @@ bool Timer3::IsStarted()
 
 extern "C" void TIM3_IRQHandler()
 {
-    if (TIM_GetITStatus(TIM3, TIM_IT_Update) != RESET)
+	Timer3* inst = Timer3::Instance();
+    if (TIM_GetITStatus(inst->tim, TIM_IT_Update) != RESET)
     {
-        TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-        //if (Timer3::Instance()->rec!=NULL)
-        //	Timer3::Instance()->rec->OnHWTimer(5);
-        if (Timer3::rec!=NULL)
-    			Timer3::rec->OnHWTimer(5);
+        TIM_ClearITPendingBit(inst->tim, TIM_IT_Update);
+        if (inst->rec!=NULL)
+        	inst->rec->OnHWTimer(5);
     }
 
     TIM_ClearITPendingBit(TIM3, TIM_IT_Trigger | TIM_IT_Break | TIM_IT_COM | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 );

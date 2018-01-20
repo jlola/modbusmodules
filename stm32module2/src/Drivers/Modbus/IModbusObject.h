@@ -13,6 +13,10 @@
 //	slave->setHolding(INPUTS_BIN_ADDRESS,INPUTS_BIN_ADDRESS_VALUE);
 //	slave->setHolding(INPUTS_BIN_FUNC,INPUTS_BIN_FUNC_VALUE);
 
+#include "ModbusSettings.h"
+#include "Settings.h"
+#include "stdint.h"
+
 class IModbusObject
 {
 public:
@@ -23,6 +27,7 @@ public:
 	virtual EModbusFunctions GetModbusFunc()=0;
 	virtual uint16_t GetSizeInWords()=0;
 	virtual void SetOffset(uint16_t offset)=0;
+	virtual ~IModbusObject(){}
 };
 
 

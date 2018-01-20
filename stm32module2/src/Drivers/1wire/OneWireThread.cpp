@@ -1,5 +1,7 @@
 #ifndef UNITTEST
 
+#include "stm32f0xx_GPIO.h"
+#include "stm32f0xx.h"
 #include <string.h>
 #include "OneWireThread.h"
 
@@ -89,38 +91,18 @@ void OneWireThread::OWInit(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uint16_t GPIO
 //set direction
 void OneWireThread::OWInput()
 {
-//	GPIO_InitTypeDef gpioinit;
-//	//GPIO_StructInit(gpioinit);
-//	gpioinit.GPIO_Mode = GPIO_Mode_IN;
-//	gpioinit.GPIO_Pin = owire->Pin;
-//	gpioinit.GPIO_PuPd = GPIO_PuPd_UP;
-//	gpioinit.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_Init(owire->m_Port,&gpioinit);
-
 	owire->m_Port->MODER  &= ~(GPIO_MODER_MODER0 << (owire->PinSource * 2));
 	owire->m_Port->MODER |= (((uint32_t)GPIO_Mode_IN) << (owire->PinSource * 2));
 }
 //set direction
 void OneWireThread::OWOutput()
 {
-//	GPIO_InitTypeDef gpioinit;
-//	//GPIO_StructInit(gpioinit);
-//	gpioinit.GPIO_Mode = GPIO_Mode_OUT;
-//	gpioinit.GPIO_Pin = owire->Pin;
-//	gpioinit.GPIO_OType = GPIO_OType_OD;
-//	gpioinit.GPIO_PuPd = GPIO_PuPd_UP;
-//	gpioinit.GPIO_Speed = GPIO_Speed_50MHz;
-//	GPIO_Init(owire->m_Port,&gpioinit);
-
 	owire->m_Port->MODER  &= ~(GPIO_MODER_MODER0 << (owire->PinSource * 2));
 	owire->m_Port->MODER |= (((uint32_t)GPIO_Mode_OUT) << (owire->PinSource * 2));
 }
 
 uint8_t OneWireThread::OWReadPin()
 {
-	//if (GPIO_ReadInputDataBit(owire->m_Port,owire->Pin)==SET)
-	//	return 1;
-	//return 0;
 	if ((owire->m_Port->IDR & owire->Pin) != (uint32_t)Bit_RESET)
 	  {
 	    return 1;
@@ -332,7 +314,7 @@ uint8_t OneWireThread::OWRead_bytes(uint8_t *buf, uint16_t count) {
   PT_BEGIN(&ptOWRead_bytes);
   for (ireadbytes = 0 ; ireadbytes < count ; ireadbytes++)
   {
-	  PT_WAIT_THREAD(&ptOWRead_bytes, OWRead(owire,&b));
+	  PT_WAIT_THREAD(&ptOWRead_bytes, this->OWRead(owire,&b));
 	  buf[ireadbytes] = b;
   }
   PT_END(&ptOWRead_bytes);

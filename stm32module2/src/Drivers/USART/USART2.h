@@ -1,22 +1,27 @@
-#ifndef CUSART2_H_
-#define CUSART2_H_
+/*
+ * USART2.h
+ *
+ *  Created on: 19. 11. 2017
+ *      Author: Libor
+ */
 
-#include <stdint.h>
+#ifndef DRIVERS_USART_USART2_H_
+#define DRIVERS_USART_USART2_H_
+
 #include "USARTBase.h"
 
-
-class CUSART1 : public USARTBase
+class CUSART2 : public USARTBase
 {
-private:
-	CUSART1();
 public:
+	CUSART2();
+
 	void SetTimeOut(uint8_t bits);
 	void EnableTimeout(bool enable);
 	void Init(uint32_t speed);
 	void Enable(bool enable);
 	static USARTBase* Instance();
+
+	virtual ~CUSART2();
 };
 
-
-
-#endif
+#endif /* DRIVERS_USART_USART2_H_ */

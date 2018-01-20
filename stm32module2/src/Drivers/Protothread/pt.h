@@ -49,6 +49,7 @@
 #ifndef __PT_H__
 #define __PT_H__
 
+#include "stdint.h"
 #include "lc.h"
 
 struct pt {

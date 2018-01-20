@@ -19,6 +19,7 @@
  *
  *
  */
+char buffer[BUFFER_SIZE];
 
 uint16_t *mram = (uint16_t*)RAM_START;
 
@@ -66,6 +67,29 @@ SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address) :
 	setAddress(old[0]);
 }
 
+void SlaveRtu::ReceiveData()
+{
+	char pdata;
+	size_t i = 0;
+	if (_usart.PacketCompleted())
+	{
+		//send_command(0x05/* some interrupt ID */, m);
+		//read packet
+		while(_usart.Read(pdata))
+		{
+			if (i<BUFFER_SIZE) {
+				buffer[i++] = pdata;
+			}
+		}
+		//Watchdog::ResetCounter();
+
+		handler(buffer,i);
+		i = 0;
+		memset(buffer,0x00,sizeof(buffer));
+		_usart.RecEnable(true);
+	}
+}
+
 SlaveRtu::~SlaveRtu() {
 //	free(_bit_inputs);
 //	free(_short_inputs);
@@ -75,6 +99,11 @@ SlaveRtu::~SlaveRtu() {
 }
 
 //****************Init*****************************//
+
+uint16_t SlaveRtu::GetMaxIndex()
+{
+	return (uint16_t)SLAVERTU_HOLDINGS;
+}
 
 void SlaveRtu::initBitInputs(uint16_t length) {
 	//if (_bit_inputs) free(_bit_inputs);
@@ -403,6 +432,12 @@ bool SlaveRtu::setHolding(uint16_t index, uint16_t val) {
 
 	_holdings[index] = val;
 
+	return true;
+}
+
+bool SlaveRtu::setHoldings(uint16_t index, uint16_t* buffer,uint16_t length)
+{
+	memcpy(&_holdings[index],buffer,length*2);
 	return true;
 }
 

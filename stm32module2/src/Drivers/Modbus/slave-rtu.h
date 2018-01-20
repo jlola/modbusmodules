@@ -64,6 +64,10 @@ public:
 	SlaveRtu(RS485 & usart, uint8_t address);
 	virtual ~SlaveRtu();
 
+	void ReceiveData();
+
+	uint16_t GetMaxIndex();
+
 	void init(IModbusObject* writeResolvers[],size_t resolversCount);
 	void setAddress(uint8_t address);
 	void handler(const char* pchar, uint16_t length_rx);
@@ -87,6 +91,7 @@ public:
 	bool setHoldingResolve(uint16_t index, uint16_t val);
 
 	bool setHolding(uint16_t index, uint16_t val);
+	bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length);
 	uint16_t getHolding(uint16_t index);
 
 //	OnUpdateDelegate OnUpdateHoldings;

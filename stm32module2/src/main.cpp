@@ -40,15 +40,18 @@
 #include "DeviceFunctions.h"
 #include "OneWireManager.h"
 #include "OneWireThread.h"
-#include "Timer.h"
+#include <Timer6.h>
 #include "Timer3.h"
 #include "slave-rtu.h"
 #include "ModbusSettings.h"
 #include "string.h"
 #include <stm32f0xx_tim.h>
 #include <USART1.h>
+#include "USART2.h"
 #include "CFlash.h"
 #include "IWDG/Watchdog.h"
+#include "diag/Trace.h"
+#include "ModbusObjectFactory.h"
 
 // ----------------------------------------------------------------------------
 //
@@ -70,58 +73,56 @@
 //#pragma GCC diagnostic ignored "-Wmissing-declarations"
 //#pragma GCC diagnostic ignored "-Wreturn-type"
 
-char buffer[BUFFER_SIZE];
+
 
 int
 main(int argc, char* argv[])
 {
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA, ENABLE);
+	//trace_initialize();
 
-	IOPin powerled(POWER_LED_PORT,POWER_LED_PIN,IODirection::IOOutput,0);
-	powerled.Set(true);
+	trace_printf("System clock: %u Hz\n", SystemCoreClock);
 
+	IOPin powerled(POWER_LED_PORT,POWER_LED_PIN,IODirection::IOOutput,0, true);
+
+	#ifdef STM32F030C8
+	USARTBase* usart2 = CUSART2::Instance();
+	usart2->Init(9600);
+	#endif
 	USARTBase* usart1 = CUSART1::Instance();
-	Timer3::Instance()->Init();
 	usart1->Init(RS485_SPEED);
 
+	Timer3::Instance()->Init();
 	OneWireThread owthread(Timer3::Instance(),OW_PORT,OW_PIN,OW_PIN_SOURCE);
 
+
+
 //	//pin for receive enabled driving
-	IOPin pre(GPIOA,GPIO_Pin_0,IOOutput,0);
-	pre.Set(false);
-	RS485 rs485(usart1, NULL,&pre, 4*1000000/RS485_SPEED);
-	RS485SetInstance(&rs485);
+	IOPin recEnable(GPIOA,GPIO_Pin_11,IOOutput,0, false);
+	RS485 rs485(usart1, NULL,&recEnable, 4000000/RS485_SPEED);
 
 	SlaveRtu slave(rs485,1);
 	OneWireManager owmanager(&owthread,&slave);
-	DeviceFunctions dev(&slave,&owmanager);
-	dev.Init();
+
+	#ifdef STM32F030C8
+	Timer6::Instance()->Init();
+	ModbusObjectFactory factory(&slave,usart2,Timer6::Instance(),&owmanager);
+	#endif
+	#ifdef STM32F030K6
+	ModbusObjectFactory factory(&slave,&owmanager);
+	#endif
+
+	DeviceFunctions dev(&slave, &factory);
+
 	owmanager.StartScan();
 
-	char pdata;
-	size_t i = 0;
 	rs485.RecEnable(true);
+	trace_puts("Started");
 	while(1)
 	{
-		owmanager.Refresh();
+		//usart2->Send(sentstr,0,strlen(sentstr));
 		dev.Process();
-		if (rs485.PacketCompleted())
-		{
-			//send_command(0x05/* some interrupt ID */, m);
-			//read packet
-			while(rs485.Read(pdata))
-			{
-				if (i<BUFFER_SIZE) {
-					buffer[i++] = pdata;
-				}
-			}
-			//Watchdog::ResetCounter();
-
-			slave.handler(buffer,i);
-			i = 0;
-			memset(buffer,0x00,sizeof(buffer));
-			rs485.RecEnable(true);
-		}
+		slave.ReceiveData();
 		//int rnd = getTrueRandomNumber();
 	}
 }

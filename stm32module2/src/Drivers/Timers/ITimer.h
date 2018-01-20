@@ -14,6 +14,8 @@ public:
 	virtual void SetReceiver(ITimerHandler* pkeg)=0;
 	virtual bool IsStarted()=0;
 	virtual void SetTimeUs(uint16_t timeus)=0;
+	virtual void Reset();
+	virtual ~ITimer(){}
 };
 
 #endif

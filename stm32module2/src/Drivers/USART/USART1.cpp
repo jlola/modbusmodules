@@ -8,31 +8,31 @@
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_gpio.h"
 
-
-
 CUSART1::CUSART1()
+	: USARTBase::USARTBase(USART1)
 {
+
 }
 
 void CUSART1::Enable(bool enable)
 {
 	if (enable)
-		USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
+		USART_ITConfig(usart, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
 	else
-		USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); // enable the USART1 receive interrupt
+		USART_ITConfig(usart, USART_IT_RXNE, DISABLE); // enable the USART1 receive interrupt
 }
 
 void CUSART1::SetTimeOut(uint8_t bits)
 {
-	USART_SetReceiverTimeOut(USART1,bits);
+	USART_SetReceiverTimeOut(usart,bits);
 }
 
 void CUSART1::EnableTimeout(bool enable)
 {
 	if (enable)
-		USART_ReceiverTimeOutCmd(USART1,ENABLE);
+		USART_ReceiverTimeOutCmd(usart,ENABLE);
 	else
-		USART_ReceiverTimeOutCmd(USART1,DISABLE);
+		USART_ReceiverTimeOutCmd(usart,DISABLE);
 }
 
 void CUSART1::Init(uint32_t pbaudrate)
@@ -41,7 +41,6 @@ void CUSART1::Init(uint32_t pbaudrate)
 	isinit = true;
 
 	baudrate = pbaudrate;
-	usart = USART1;
 
 	/* This is a concept that has to do with the libraries provided by ST
 		 * to make development easier the have made up something similar to
@@ -69,7 +68,13 @@ void CUSART1::Init(uint32_t pbaudrate)
 		/* This sequence sets up the TX and RX pins
 		 * so they work correctly with the USART1 peripheral
 		 */
+#ifdef STM32F030C8
+		GPIO_InitStruct.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_12; // Pins 9 (TX) and 10 (RX) are used
+#elif defined STM32F030K6
 		GPIO_InitStruct.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_2 | GPIO_Pin_1; // Pins 2 (TX) and 3 (RX) are used
+#else
+	#error "Not selected cpu. Please define STM32F030 or STM32F030XC"
+#endif
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF; 			// the pins are configured as alternate function so the USART peripheral has access to them
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;		// this defines the IO speed and has nothing to do with the baudrate!
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;			// this defines the output type as push pull mode (as opposed to open drain)
@@ -80,9 +85,17 @@ void CUSART1::Init(uint32_t pbaudrate)
 		 * so that the USART2 can take over control of the
 		 * pins
 		 */
+#ifdef STM32F030C8
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_1); //
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_1);
+		GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_1);
+#elif defined STM32F030K6
 		GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1); //
 		GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1);
 		GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_1);
+#else
+	#error "Not selected cpu. Please define STM32F030 or STM32F030XC"
+#endif
 
 		/* Now the USART_InitStruct is used to define the
 		 * properties of USART1
@@ -93,7 +106,7 @@ void CUSART1::Init(uint32_t pbaudrate)
 		USART_InitStruct.USART_Parity = USART_Parity_No;		// we don't want a parity bit (standard)
 		USART_InitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None; // we don't want flow control (standard)
 		USART_InitStruct.USART_Mode = USART_Mode_Tx | USART_Mode_Rx; // we want to enable the transmitter and the receiver
-		USART_Init(USART1, &USART_InitStruct);					// again all the properties are passed to the USART_Init function which takes care of all the bit setting
+		USART_Init(usart, &USART_InitStruct);					// again all the properties are passed to the USART_Init function which takes care of all the bit setting
 
 
 		/* Here the USART1 receive interrupt is enabled
@@ -101,8 +114,8 @@ void CUSART1::Init(uint32_t pbaudrate)
 		 * to jump to the USART1_IRQHandler() function
 		 * if the USART1 receive interrupt occurs
 		 */
-		USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
-		USART_ITConfig(USART1, USART_IT_RTO, ENABLE); // enable the USART1 receive interrupt
+		USART_ITConfig(usart, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
+		USART_ITConfig(usart, USART_IT_RTO, ENABLE); // enable the USART1 receive interrupt
 
 		NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;		 // we want to configure the USART1 interrupts
 		NVIC_InitStructure.NVIC_IRQChannelPriority = 1;// this sets the priority group of the USART1 interrupts
@@ -111,29 +124,45 @@ void CUSART1::Init(uint32_t pbaudrate)
 		NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
 
 		// finally this enables the complete USART1 peripheral
-		USART_Cmd(USART1, ENABLE);
+		USART_Cmd(usart, ENABLE);
 }
 
-//// this is the interrupt request handler (IRQ) for ALL USART1 interrupts
-//extern "C" void USART1_IRQHandler(void){
-//
-//	// check if the USART1 receive interrupt flag was set
-//	if(USART_GetFlagStatus(USART1,USART_FLAG_RXNE)){
-//
-//		//static uint8_t cnt = 0; // this counter is used to determine the string length
-//		char t = USART1->RDR; // the character from the USART2 data register is saved in t
-//		//if (CUSART1::Instance()->Received!=0)
-//		//	CUSART1::Instance()->Received(t);
-//		USART_ClearFlag(USART1,USART_FLAG_RXNE);
-//	}
-//	else
-//	{
-//		USART_ClearFlag(USART1,0xFFFF);
-//	}
-//}
+// this is the interrupt request handler (IRQ) for ALL USART1 interrupts
+extern "C" void USART1_IRQHandler(void)
+{
+	IUSARTHandler* handler = CUSART1::Instance()->GetHandler();
+	USART_TypeDef* usart = CUSART1::Instance()->GetUsart();
+	char pdata = 0x00;
+	// check if the USART1 receive interrupt flag was set
+	if (USART_GetITStatus(usart,USART_IT_RTO))
+	{
+		USART_ClearITPendingBit(usart,USART_IT_RTO);
+		if (handler!=NULL)
+			handler->ReceiverTimeout();
+	}
+	else if(USART_GetITStatus(USART1,USART_IT_RXNE))
+	{
+		pdata = USART_ReceiveData(usart);
+		if (handler!=NULL)
+			handler->OnReceiveData(pdata);
+	}
+	else if(USART_GetITStatus(usart,USART_IT_ORE)||USART_GetFlagStatus(usart,USART_FLAG_ORE))
+	{
+		pdata = USART_ReceiveData(usart);
+		//instance->ClearQueue();
+		USART_ClearITPendingBit(usart,USART_IT_ORE);
+	}
+	else if(USART_GetITStatus(usart,USART_IT_IDLE))
+	{
+		USART_ClearITPendingBit(usart,USART_IT_IDLE);
+	}
+	else if(USART_GetITStatus(usart,USART_IT_NE ))
+	{
+		USART_ClearITPendingBit(usart,USART_IT_NE );
+	}
+}
 
-
-USARTBase* CUSART1::Instance()
+CUSART1* CUSART1::Instance()
 {
 	static CUSART1 instance;
 	return &instance;

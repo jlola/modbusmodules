@@ -1,7 +1,7 @@
 #ifndef IOPIN_H
 #define IOPIN_H
 
-//#include "IIOPin.h"
+#include "IIOPin.h"
 
 #ifndef TEST
 
@@ -16,18 +16,20 @@ typedef enum
 	IOOutput
 } IODirection;
 
-class IOPin// : public IIOPin
+class IOPin : public IIOPin
 {
 	IODirection dir;
 	GPIO_TypeDef* GPIOx;
 	uint16_t GPIO_Pin;
 	uint8_t pinNumber;
 public:
+	IOPin(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin,IODirection pdir,uint8_t pinNumber, bool initValue);
 	IOPin(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin,IODirection pdir,uint8_t pinNumber);
 	void Init();
 	void Set(bool set);
 	bool IsSet();
 	uint8_t GetPinNumber();
+	virtual ~IOPin();
 };
 
 #endif

@@ -7,6 +7,7 @@ class ITimerHandler
 {
 public:
 	virtual void OnHWTimer(uint8_t us)=0;
+	virtual ~ITimerHandler(){}
 };
 
 

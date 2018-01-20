@@ -1,11 +1,11 @@
-#ifndef UNITTEST
-
 #include "string.h"
-#include "OneWireThread.h"
 #include "OneWireManager.h"
 
+#ifdef UNITTEST
+#include "TestSettings.h"
+#endif
 
-OneWireManager::OneWireManager(OneWireThread* pow,SlaveRtu* Slave)
+OneWireManager::OneWireManager(IOneWireThread* pow,IModbusSlave* Slave)
 	: ow(pow),slave(Slave)
 {
 	offset = 0;
@@ -138,4 +138,3 @@ uint16_t OneWireManager::GetSizeInWords()
 	return 5+DS18B20::Size*DS18B20MAXCOUNT;
 }
 
-#endif

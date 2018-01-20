@@ -3,7 +3,7 @@
 #include "OutputReg.h"
 
 
-OutputReg::OutputReg(IOPin* pin,IModbusSlave* slave)
+OutputReg::OutputReg(IIOPin* pin,IModbusSlave* slave)
 {
 	offset = 0;
 	assert_param(slave != NULL);

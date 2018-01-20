@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include "USARTBase.h"
 
-
 class CUSART1 : public USARTBase
 {
+
 private:
 	CUSART1();
 public:
@@ -14,7 +14,7 @@ public:
 	void EnableTimeout(bool enable);
 	void Init(uint32_t speed);
 	void Enable(bool enable);
-	static USARTBase* Instance();
+	static CUSART1* Instance();
 };
 
 

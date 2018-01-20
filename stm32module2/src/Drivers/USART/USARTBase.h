@@ -8,24 +8,19 @@
 //#include "delegate.h"
 #include "stdint.h"
 #include <ctype.h>
+#include "IUSARTHandler.h"
+#include "IUSART.h"
 
-//using namespace srutil;
-
-
-//#ifdef SRUTIL_DELEGATE_PREFERRED_SYNTAX
-//typedef srutil::delegate<void (char recchar)> OnUSARTReceived;
-//#else
-// typedef srutil::delegate<void, char> OnReceived;
-//#endif
-
-class USARTBase
+class USARTBase : public IUSART
 {
 protected:
-	 bool isinit;
 	USART_TypeDef* usart;
-	USARTBase();
+	bool isinit;
+	USARTBase(USART_TypeDef* usart);
 	uint32_t baudrate;
+	IUSARTHandler* handler;
 public:
+	void HWControlledDE(bool enable);
 	bool IsInitialized();
 	USART_TypeDef* GetUsart();
 	virtual void Init(uint32_t speed)=0;
@@ -33,7 +28,9 @@ public:
 	virtual void Send(char pchar);
 	virtual void Enable(bool enable)=0;
 	//OnUSARTReceived Received;
-	void Send(char* pchar,size_t start,size_t len);
+	void Send(const char* pchar,size_t start,size_t len);
+	void SetHandler(IUSARTHandler* handler);
+	IUSARTHandler* GetHandler();
 	uint32_t GetSpeed();
 	virtual void SetTimeOut(uint8_t bits)=0;
 	virtual void EnableTimeout(bool enable)=0;

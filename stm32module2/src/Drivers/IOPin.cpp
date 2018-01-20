@@ -2,11 +2,17 @@
 
 #include "IOPin.h"
 
-IOPin::IOPin(GPIO_TypeDef* pGPIOx,uint16_t pGPIO_Pin,IODirection pdir,uint8_t pinNumber)
+IOPin::IOPin(GPIO_TypeDef* GPIOx,uint16_t pGPIO_Pin,IODirection pdir,uint8_t pinNumber, bool initValue)
+	: IOPin::IOPin(GPIOx,pGPIO_Pin,pdir,pinNumber)
+{
+	Set(initValue);
+}
+
+IOPin::IOPin(GPIO_TypeDef* GPIOx,uint16_t GPIO_Pin,IODirection pdir,uint8_t pinNumber)
 {
 	this->pinNumber = pinNumber;
-	GPIOx = pGPIOx;
-	GPIO_Pin = pGPIO_Pin;
+	this->GPIOx = GPIOx;
+	this->GPIO_Pin = GPIO_Pin;
 	dir = pdir;
 	Init();
 }
@@ -57,4 +63,10 @@ bool IOPin::IsSet()
 	}
 	return false;
 }
+
+IOPin::~IOPin()
+{
+
+}
+
 #endif

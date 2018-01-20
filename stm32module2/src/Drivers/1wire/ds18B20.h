@@ -1,8 +1,9 @@
 #ifndef _DS18B20_H_
 #define _DS18B20_H_
 
-#include "OneWireThread.h"
-#include "slave-rtu.h"
+#include "pt.h"
+#include "IOneWireThread.h"
+#include "IModbusSlave.h"
 
 #define DS18B20_SIZE		6
 
@@ -58,17 +59,17 @@ class DS18B20
 //  } modbusData_t;
 
   	uint8_t addr[8];
-	OneWireThread* ow;
-	SlaveRtu* slave;
+	IOneWireThread* ow;
+	IModbusSlave* slave;
 	uint8_t baseAddr;
 	pt ptDS18b20;
 public:
 	static const uint8_t Size = 4 + 1 + 1;
 
 	DS18B20();
-	void Init(OneWireThread* thread,uint8_t * owAddr,SlaveRtu* Slave, uint8_t baseAddr);
+	void Init(IOneWireThread* thread,uint8_t * owAddr,IModbusSlave* Slave, uint8_t baseAddr);
 	uint8_t Read();
-	int16_t GetDouble(uint16_t pValue);
+	static int16_t GetDouble(uint16_t pValue);
 
 	uint16_t GetError();
 	void SetError(uint16_t error);

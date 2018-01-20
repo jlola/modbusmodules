@@ -19,10 +19,10 @@ typedef struct
 class InputReg : public IWriteReg
 {
 	uint16_t offset;
-	IOPin* pin;
+	IIOPin* pin;
 	IModbusSlave* slave;
 public:
-	InputReg(IOPin* pin, IModbusSlave* slave);
+	InputReg(IIOPin* pin, IModbusSlave* slave);
 	void Refresh();
 	bool IsValid(uint16_t index, uint16_t reg);
 	bool Write(uint16_t index, uint16_t reg);

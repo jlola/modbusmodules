@@ -3,12 +3,9 @@
 
 #include "ITimer.h"
 #include "ITImerHandler.h"
+#include "IOneWireThread.h"
 #include "pt.h"
 #include "pt-sem.h"
-
-#include "stm32f0xx_GPIO.h"
-#include "stm32f0xx.h"
-
 
 #define BOOL uint8_t
 
@@ -53,16 +50,8 @@ typedef struct{
 #endif
 }OWire;
 
-typedef enum
-{
-	EOWResetNone = 0,
-	EOWResetPresent = 1,
-	EOWResetShort = 2
-} EOWReset;
 
-
-
-class OneWireThread : public ITimerHandler
+class OneWireThread : public IOneWireThread, public ITimerHandler
 {
 	typedef enum {
 		ERunFuncNone,

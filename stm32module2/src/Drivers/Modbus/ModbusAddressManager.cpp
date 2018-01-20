@@ -7,6 +7,11 @@
 #include <stddef.h>
 #include <assert.h>
 
+#ifdef UNITTEST
+#include "TestSettings.h"
+#include "AssertException.h"
+#endif
+
 #include "Settings.h"
 #include "ModbusAddressManager.h"
 
@@ -60,6 +65,8 @@ void ModbusAddressManager::ComputeAddresses()
 		startAddressOfInstances += instancesSize;
 		instancesSize = 0;
 	}
+
+	assert_param(startAddressOfInstances<slave->GetMaxIndex());
 	slave->setHolding(LAST_INDEX,startAddressOfInstances+instancesSize);
 }
 
