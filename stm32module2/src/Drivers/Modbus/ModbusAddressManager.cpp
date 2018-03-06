@@ -13,6 +13,7 @@
 #endif
 
 #include "Settings.h"
+#include "TestDependedIncludes.h"
 #include "ModbusAddressManager.h"
 
 ModbusAddressManager::ModbusAddressManager(IModbusSlave * slave,IModbusObject* modbusobjects[],size_t count) {

@@ -1,7 +1,8 @@
+
 #ifndef UNITTEST
 
 #include "OutputReg.h"
-
+#include <TestDependedIncludes.h>
 
 OutputReg::OutputReg(IIOPin* pin,IModbusSlave* slave)
 {

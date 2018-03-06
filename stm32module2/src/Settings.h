@@ -1,8 +1,8 @@
 #ifndef _SETTINGS_H_
 #define _SETTINGS_H_
 
-//#define SMALL_SWITCH
-#define RFID
+#define SMALL_SWITCH
+//#define RFID
 
 #ifdef SMALL_SWITCH
 
@@ -60,25 +60,28 @@
 
 //OW port defs
 #define OW_PORT			GPIOA
-#define OW_PIN			GPIO_Pin_15
-#define OW_PIN_SOURCE 	GPIO_PinSource15
+#define OW_PIN			GPIO_Pin_6
+#define OW_PIN_SOURCE 	GPIO_PinSource6
 #define OW_PIN_BOARD	1
 
-#define POWER_LED_PIN			GPIO_Pin_0
-#define POWER_LED_PORT			GPIOB
+#define BIN_INPUT1_PORT		GPIOB
+#define BIN_INPUT1_PIN		GPIO_Pin_0
+#define BIN_INPUT1_BOARD_PIN	2
 
 #define BIN_OUTPUT1_PORT		GPIOB
 #define BIN_OUTPUT1_PIN		GPIO_Pin_1
-#define BIN_OUTPUT1_BOARD_PIN	4
+#define BIN_OUTPUT1_BOARD_PIN	3
+
+
+#define POWER_LED_PIN			GPIO_Pin_6
+#define POWER_LED_PORT			GPIOF
+
 
 #endif
 
 
 
-#ifndef UNITTEST
-#include "stm32f0xx.h"
-#include "stm32f0xx_GPIO.h"
-#endif
+
 
 #define RS485_SPEED 115200
 #define BUFFER_SIZE		500

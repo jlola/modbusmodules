@@ -78,7 +78,7 @@
 int
 main(int argc, char* argv[])
 {
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA, ENABLE);
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOF, ENABLE);
 	//trace_initialize();
 
 	trace_printf("System clock: %u Hz\n", SystemCoreClock);

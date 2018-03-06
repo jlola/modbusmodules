@@ -1,5 +1,6 @@
 
 #include "Settings.h"
+#include "TestDependedIncludes.h"
 #include "DeviceFunctions.h"
 #include "ModbusAddressManager.h"
 #include "ModbusSettings.h"
@@ -37,7 +38,7 @@ void DeviceFunctions::Process()
 	slave->setHolding(RESET_REG_OFFSET,csrH);
 #endif
 
-	int size = sizeof(modbusobjects) / sizeof(IModbusObject*);
+	int size = factory->ModbusObjectsCount();
 
 	for (int i=0;i<size;i++)
 	{

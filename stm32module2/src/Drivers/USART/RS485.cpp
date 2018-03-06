@@ -5,7 +5,7 @@
 #include "USARTBase.h"
 #include "Settings.h"
 
-RS485::RS485(IUSART* usart/*,ITimer* ptimer*/, IOPin* pde, IOPin* pre, int ptimeOutUs)
+RS485::RS485(IUSART* usart, IOPin* pde, IOPin* pre, int ptimeOutUs)
 : packetCompleted(false),queue(BUFFER_SIZE),recEnable(false)
 {
 	timeOutUs = ptimeOutUs;

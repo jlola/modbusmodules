@@ -16,8 +16,6 @@ class RS485 : IUSARTHandler
 	int timeOutUs;
 	bool packetCompleted;
 	void USARTReceivedData(char pdata);
-	bool hasNewData;
-	//IOPin* ledpin;
 	bool recEnable;
 	static RS485* instance;
 public:

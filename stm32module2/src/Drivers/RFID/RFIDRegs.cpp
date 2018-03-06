@@ -25,7 +25,7 @@ bool RFIDRegs::IsValid(uint16_t index, uint16_t value)
 }
 bool RFIDRegs::Write(uint16_t index, uint16_t value)
 {
-	if (index==this->offset && value > 0)
+	if (index==this->offset && value == 0)
 	{
 		regs.NewDataFlag = 0;
 		return true;

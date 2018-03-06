@@ -53,10 +53,15 @@
 #ifndef __STM32F0XX_H
 #define __STM32F0XX_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
  extern "C" {
 #endif 
-  
+
+#include "Settings.h"
+
+
 /** @addtogroup Library_configuration_section
   * @{
   */

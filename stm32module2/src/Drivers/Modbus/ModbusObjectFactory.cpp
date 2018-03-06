@@ -19,21 +19,30 @@ ModbusObjectFactory::ModbusObjectFactory(IModbusSlave * pslave,
   : slave(pslave),
   owmanager(powmanager)
 {
+	modbusobjectsCount = 0;
+	modbusobjects = NULL;
+#ifdef RFID
 	RFIDRegs* rfid = new RFIDRegs(rfidusart,slave,rfidtimer);
 	IOPin* output1 = new IOPin(BIN_OUTPUT1_PORT,BIN_OUTPUT1_PIN,IOOutput,BIN_OUTPUT1_BOARD_PIN);
+	IOPin* input1 = new IOPin(BIN_INPUT1_PORT,BIN_INPUT1_PIN,IOInput,BIN_INPUT1_BOARD_PIN);
 	OutputReg* regoutput1 = new OutputReg(output1,pslave);
+	InputReg* reginput1 = new InputReg(input1, slave);
 
-	modbusobjectsCount = 3;
+	modbusobjectsCount = 4;
 	modbusobjects = new IModbusObject*[modbusobjectsCount];
 	modbusobjects[0] = dynamic_cast<IModbusObject*>(regoutput1);
-	modbusobjects[1] = dynamic_cast<IModbusObject*>(owmanager);
-	modbusobjects[2] = dynamic_cast<IModbusObject*>(rfid);
+	modbusobjects[1] = dynamic_cast<IModbusObject*>(reginput1);
+	modbusobjects[2] = dynamic_cast<IModbusObject*>(owmanager);
+	modbusobjects[3] = dynamic_cast<IModbusObject*>(rfid);
+#endif
 }
 
 ModbusObjectFactory::ModbusObjectFactory(IModbusSlave * pslave,
 		OneWireManager* powmanager)
   : slave(pslave), owmanager(powmanager)
 {
+	modbusobjectsCount = 0;
+	modbusobjects = NULL;
 #ifdef SMALL_SWITCH
 	IOPin input1(BIN_INPUT1_PORT,BIN_INPUT1_PIN,IOInput,BIN_INPUT1_BOARD_PIN);
 	IOPin input2(BIN_INPUT2_PORT,BIN_INPUT2_PIN,IOInput,BIN_INPUT2_BOARD_PIN);

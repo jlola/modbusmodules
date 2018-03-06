@@ -1,5 +1,6 @@
 #include "string.h"
 #include "OneWireManager.h"
+#include "TestDependedIncludes.h"
 
 #ifdef UNITTEST
 #include "TestSettings.h"
