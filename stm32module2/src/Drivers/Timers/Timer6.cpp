@@ -1,5 +1,5 @@
 
-#if defined(UNITTEST) || defined(STM32F030C8)
+#if /*defined(UNITTEST) ||*/ defined(STM32F030C8)
 
 #include <stm32f0xx_tim.h>
 #include <stm32f0xx_rcc.h>

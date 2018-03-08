@@ -65,7 +65,7 @@ TEST_F(RFIDRegs_test,Write_RecDataThenResetDataFlag)
 	regs.OnReceiveData(recchar);
 	regs.OnHWTimer(1);
 	When(Method(slaveMock,setHoldings).Using(10,(uint16_t*)&regs.regs,sizeof(SRFIDRegs)/2)).AlwaysReturn();
-	regs.Write(offset,1);
+	regs.Write(offset,0);
 	regs.Refresh();
 	ASSERT_EQ(regs.regs.NewDataFlag,0);
 }

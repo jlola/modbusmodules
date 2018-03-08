@@ -30,7 +30,6 @@ TEST_F(DeviceFunctionsTest,CheckInstancesAndProcess)
 
 	IModbusObjectFactory* factory = &factoryMock.get();
 
-	//When(Method(mockModbusSlave,setHolding).Using(1,3)).AlwaysReturn();
 	ModbusObjectsMockGenerator generator;
 	Mock<IModbusObject> inputRegs1;
 	Mock<IModbusObject> inputRegs2;
@@ -44,12 +43,18 @@ TEST_F(DeviceFunctionsTest,CheckInstancesAndProcess)
 	generator.CreateOutput1(outputRegs);
 	generator.CreateDS18B20(onewireRegs);
 	generator.CreateRFIDRegs(rfidRegs);
-	When(Method(factoryMock,CreateInputReg).Using(1)).AlwaysReturn(&inputRegs1.get());
-	When(Method(factoryMock,CreateInputReg).Using(2)).AlwaysReturn(&inputRegs2.get());
-	When(Method(factoryMock,CreateInputReg).Using(3)).AlwaysReturn(&inputRegs3.get());
-	When(Method(factoryMock,CreateOutputReg).Using(1)).AlwaysReturn(&outputRegs.get());
-	When(Method(factoryMock,CreateOneWireThread)).AlwaysReturn(&onewireRegs.get());
-	When(Method(factoryMock,CreateRFIDRegs)).AlwaysReturn(&rfidRegs.get());
+	IModbusObject** modbusobjects;
+	int modbusobjectsCount = 6;
+	modbusobjects = new IModbusObject*[modbusobjectsCount];
+	modbusobjects[0] = dynamic_cast<IModbusObject*>(&inputRegs1.get());
+	modbusobjects[1] = dynamic_cast<IModbusObject*>(&inputRegs2.get());
+	modbusobjects[2] = dynamic_cast<IModbusObject*>(&inputRegs3.get());
+	modbusobjects[3] = dynamic_cast<IModbusObject*>(&outputRegs.get());
+	modbusobjects[4] = dynamic_cast<IModbusObject*>(&onewireRegs.get());
+	modbusobjects[5] = dynamic_cast<IModbusObject*>(&rfidRegs.get());
+
+	When(Method(factoryMock,ModbusObjects)).AlwaysReturn(modbusobjects);
+	When(Method(factoryMock,ModbusObjectsCount)).AlwaysReturn(modbusobjectsCount);
 
 	When(Method(slaveMockInst,setHolding).Using(TYPE_DEFS_OFFSET,TYPE_DEFS_START_ADDRESS)).AlwaysReturn();
 	When(Method(slaveMockInst,setHolding).Using(COUNT_OF_TYPES_OFFSET,4)).AlwaysReturn();

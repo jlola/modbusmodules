@@ -46,7 +46,7 @@ TEST_F(ModbusAddressManagerTests,ComputeAddressesTest)
 	modbusobjects[4] = &ds18b20mock.get();
 	modbusobjects[5] = &rfidmock.get();
 
-	ModbusAddressManager manager(&mockModbusSlaveInst,modbusobjects,sizeof(modbusobjects) / sizeof(IModbusObject*));
+	ModbusAddressManager manager(&mockModbusSlaveInst,modbusobjects,6);
 	manager.ComputeAddresses();
 }
 
