@@ -73,7 +73,9 @@
 //#pragma GCC diagnostic ignored "-Wmissing-declarations"
 //#pragma GCC diagnostic ignored "-Wreturn-type"
 
-
+//unsigned int __attribute__((section (".b1text"))) addr __attribute__ ((aligned (4))) = 0x00000002;
+unsigned short addr __attribute__ ((section (".b1text"))) = 0x02;
+int i;
 
 int
 main(int argc, char* argv[])
@@ -81,14 +83,17 @@ main(int argc, char* argv[])
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOF, ENABLE);
 	//trace_initialize();
 
+	//for compilation intialization of memory addr
+	i = addr;
+
 	trace_printf("System clock: %u Hz\n", SystemCoreClock);
 
 	IOPin powerled(POWER_LED_PORT,POWER_LED_PIN,IODirection::IOOutput,0, true);
 
-	#ifdef STM32F030C8
+#ifdef STM32F030C8
 	USARTBase* usart2 = CUSART2::Instance();
 	usart2->Init(9600);
-	#endif
+#endif
 	USARTBase* usart1 = CUSART1::Instance();
 	usart1->Init(RS485_SPEED);
 
@@ -98,19 +103,20 @@ main(int argc, char* argv[])
 
 
 //	//pin for receive enabled driving
-	IOPin recEnable(GPIOA,GPIO_Pin_11,IOOutput,0, false);
+	IOPin recEnable(REC_ENABLE_PORT,REC_ENABLE_PIN,IOOutput,0, false);
+
 	RS485 rs485(usart1, NULL,&recEnable, 4000000/RS485_SPEED);
 
 	SlaveRtu slave(rs485,1);
 	OneWireManager owmanager(&owthread,&slave);
 
-	#ifdef STM32F030C8
+#ifdef STM32F030C8
 	Timer6::Instance()->Init();
 	ModbusObjectFactory factory(&slave,usart2,Timer6::Instance(),&owmanager);
-	#endif
-	#ifdef STM32F030K6
+#endif
+#ifdef STM32F030K6
 	ModbusObjectFactory factory(&slave,&owmanager);
-	#endif
+#endif
 
 	DeviceFunctions dev(&slave, &factory);
 

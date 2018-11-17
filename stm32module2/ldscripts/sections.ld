@@ -351,10 +351,12 @@ SECTIONS
      */
     .b1text : ALIGN(4)
     {
+    	FILL(0x00)
+    
         *(.b1text)                   /* remaining code */
         *(.b1rodata)                 /* read-only data (constants) */
         *(.b1rodata.*)
-    } >FLASHB1
+    } >FLASHB1            
     
     /*
      * The EXTMEM.
