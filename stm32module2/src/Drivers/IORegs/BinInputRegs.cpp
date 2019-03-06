@@ -41,7 +41,7 @@ void InputReg::SetOffset(uint16_t offset)
 	slave->setHolding(offset,*((uint16_t*)pinputreg));
 }
 
-void InputReg::Refresh()
+bool InputReg::Refresh()
 {
 	uint16_t reg = slave->getHolding(offset);
 	SInputReg* pinputreg = (SInputReg*)&reg;
@@ -52,7 +52,9 @@ void InputReg::Refresh()
 
 		pinputreg->Value = pin->IsSet();
 		slave->setHolding(offset,*((uint16_t*)pinputreg));
+		return true;
 	}
+	return false;
 }
 
 EDeviceType InputReg::GetDeviceType()

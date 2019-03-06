@@ -7,19 +7,20 @@
  *      Author: agu
  */
 #include <string.h>
+#include <stdlib.h>
 #include "slave-rtu.h"
 #include "CFlash.h"
 #include "bitops.h"
 #include "crc.h"
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_crc.h"
+#include "diag/Trace.h"
 
 /**
  *
  *
  *
  */
-char buffer[BUFFER_SIZE];
 
 uint16_t *mram = (uint16_t*)RAM_START;
 
@@ -29,18 +30,18 @@ static uint16_t _short_input_length;
 static uint16_t _holding_length;
 
 static const uint16_t _BUFF_LENGTH = 256;
-const char* _buff_rx;
+const uint8_t* _buff_rx;
 uint8_t _address;
 char _buff_tx[_BUFF_LENGTH];
-uint8_t _bit_inputs[SLAVERTU_GETBYTES(SLAVERTU_BITINPUTS)];
-uint16_t _short_inputs[SLAVERTU_SHORTINPUTS];
-uint8_t _coils[SLAVERTU_GETBYTES(SLAVERTU_COILS)];
+//uint8_t _bit_inputs[SLAVERTU_GETBYTES(SLAVERTU_BITINPUTS)];
+//uint16_t _short_inputs[SLAVERTU_SHORTINPUTS];
+//uint8_t _coils[SLAVERTU_GETBYTES(SLAVERTU_COILS)];
 uint16_t _holdings[SLAVERTU_HOLDINGS];
 
 
 
 SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address) :
-		_usart(usart),resolversCount(0) {
+		resolversCount(0),writeResolvers(NULL),_usart(usart) {
 	_buff_rx = NULL;
 	_address = address;
 
@@ -61,32 +62,22 @@ SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address) :
 	this->initCoils(SLAVERTU_COILS);
 	this->initHoldings(SLAVERTU_HOLDINGS);
 
-	uint16_t old[2];
-	CFlash::Read16(old,1);
-	setHolding(0,old[0]);
-	setAddress(old[0]);
+	srand(_address);
+	setHolding(0,_address);
 }
 
 void SlaveRtu::ReceiveData()
 {
-	char pdata;
-	size_t i = 0;
 	if (_usart.PacketCompleted())
 	{
-		//send_command(0x05/* some interrupt ID */, m);
-		//read packet
-		while(_usart.Read(pdata))
-		{
-			if (i<BUFFER_SIZE) {
-				buffer[i++] = pdata;
-			}
-		}
+		uint8_t* buffer=NULL;
+		uint16_t size = 0;
+		_usart.ReadBuffer(buffer,size);
 		//Watchdog::ResetCounter();
-
-		handler(buffer,i);
-		i = 0;
-		memset(buffer,0x00,sizeof(buffer));
-		_usart.RecEnable(true);
+		handler(buffer,size);
+		_usart.ResetBuffer();
+		//memset(buffer,0x00,sizeof(buffer));
+		//_usart.RecEnable(true);
 	}
 }
 
@@ -112,8 +103,8 @@ void SlaveRtu::initBitInputs(uint16_t length) {
 	uint8_t bit_input_byte_size = SLAVERTU_GETBYTES(length);
 	//_bit_inputs = (uint8_t *) malloc(bit_input_byte_size * sizeof(uint8_t));
 
-	assert_param(_bit_inputs);
-	memset(_bit_inputs, 0, bit_input_byte_size);
+	//assert_param(_bit_inputs);
+	//memset(_bit_inputs, 0, bit_input_byte_size);
 }
 
 void SlaveRtu::initShortInputs(uint16_t length) {
@@ -122,22 +113,21 @@ void SlaveRtu::initShortInputs(uint16_t length) {
 	_short_input_length = length;
 	//_short_inputs = (uint16_t *) malloc(_short_input_length * sizeof(uint16_t));
 	//assert_param(_short_inputs);
-	memset(_short_inputs, 0, _short_input_length * sizeof(uint16_t));
+	//memset(_short_inputs, 0, _short_input_length * sizeof(uint16_t));
 }
 
 void SlaveRtu::initCoils(uint16_t length) {
 	//if (_coils) free(_coils);
 
-	_coil_length = length;
-	uint8_t coils_byte_size = SLAVERTU_GETBYTES(length);
+	//_coil_length = length;
+	//uint8_t coils_byte_size = SLAVERTU_GETBYTES(length);
 	//_coils = (uint8_t *) malloc(coils_byte_size * sizeof(uint8_t));
-	assert_param(_coils);
-	memset(_coils, 0, coils_byte_size);
+	//assert_param(_coils);
+	//memset(_coils, 0, coils_byte_size);
 }
 
 void SlaveRtu::initHoldings(uint16_t length) {
 	//if (_holdings) free(_holdings);
-
 	_holding_length = length;
 	//_holdings = (uint16_t *) malloc(_holding_length * sizeof(uint16_t));
 	assert_param(_holdings);
@@ -154,22 +144,29 @@ void SlaveRtu::setAddress(uint8_t address) {
 	_address = address;
 }
 
-void SlaveRtu::handler(const char* pbuf, uint16_t length_rx) {
-		_buff_rx = pbuf;
-		//slaveRtu_t* rxStruct = (slaveRtu_t*)_buff_rx;
-		//rxStruct->StartAddr = swap16(rxStruct->StartAddr);
+bool SlaveRtu::IsValidAddress(uint8_t recAddress)
+{
+	if (recAddress == _address)
+		return true;
+	if (recAddress == 0xFF && _holdings[CHANGE_FLAG]!=0)
+		return true;
+	return false;
+}
 
+void SlaveRtu::handler(const uint8_t* pbuf, uint16_t length_rx) {
+		_buff_rx = pbuf;
+		uint8_t length_tx = 0;
 		memset(_buff_tx, 0, _BUFF_LENGTH);
 
 		do {
 			if (length_rx < 4 || length_rx >= _BUFF_LENGTH) break;
-			if (_buff_rx[0] && _buff_rx[0] != 0x01 && _buff_rx[0] != _address) break;
-			if (this->checkFrameCrc(_buff_rx, length_rx) == false) break;
+			if (!IsValidAddress(_buff_rx[0])) break;
+			if (!checkFrameCrc((const char*)_buff_rx, length_rx)) break;
 
 			_buff_tx[0] = _buff_rx[0];
 			_buff_tx[1] = _buff_rx[1];	// function code
 
-			uint8_t length_tx = 1;
+			length_tx = 1;
 			uint8_t exception = 0;
 
 			switch (_buff_rx[1]) {
@@ -198,7 +195,14 @@ void SlaveRtu::handler(const char* pbuf, uint16_t length_rx) {
 				exception = onWriteMultipleHoldings(length_rx, &length_tx);
 				break;
 			default:
-				exception = 0x01;
+//				if (_buff_rx[0]!=1)
+//					exception = 0x01;
+//				else
+//				{
+//					length_rx = 0;
+//					return;
+//				}
+				return;
 				break;
 			}
 
@@ -207,12 +211,18 @@ void SlaveRtu::handler(const char* pbuf, uint16_t length_rx) {
 				_buff_tx[2] = exception;
 				length_tx = 3;
 			}
-
-			if (_buff_tx[0]) this->appendCrcAndReply(length_tx);
 		} while (false);
 
-		length_rx = 0;
+	if (_buff_tx[0])
+	{
+		this->appendCrcAndReply(length_tx);
+	}
+	else
+	{
+		_usart.RecEnable(true);
+	}
 
+	length_rx = 0;
 }
 
 
@@ -230,18 +240,19 @@ void SlaveRtu::appendCrcAndReply(uint8_t length_tx) {
 	_buff_tx[length_tx + 1] = highByte(v);
 	//_usart.write(_buff_tx, length_tx + 2);
 	//_usart.flush();
-	_usart.Send(_buff_tx,length_tx+2);
+	//_usart.RecEnable(true);
+	_usart.Send(_buff_tx,length_tx+2,true);
 }
 
 //****************get set*****************************//
 void SlaveRtu::setCoil(uint16_t index, Bit state) {
-	assert_param(index < _coil_length);
-	bitWrite(_coils[index >> 3], index & 0x07, state == BitSET);
+	//assert_param(index < _coil_length);
+	//bitWrite(_coils[index >> 3], index & 0x07, state == BitSET);
 }
 
 Bit SlaveRtu::getCoil(uint16_t index) {
-	assert_param(index < _coil_length);
-	return bitRead(_coils[index >> 3],index & 0x07) ? BitSET : BitRESET;
+	//assert_param(index < _coil_length);
+	return BitRESET;//bitRead(_coils[index >> 3],index & 0x07) ? BitSET : BitRESET;
 }
 
 uint8_t SlaveRtu::onReadCoils(uint8_t * p_length_tx) {
@@ -265,12 +276,12 @@ uint8_t SlaveRtu::onReadCoils(uint8_t * p_length_tx) {
 
 void SlaveRtu::setBitInput(uint16_t index, Bit state) {
 	assert_param(index < _bit_input_length);
-	bitWrite(_bit_inputs[index >> 3], index & 0x07, state == BitSET);
+	//bitWrite(_bit_inputs[index >> 3], index & 0x07, state == BitSET);
 }
 
 Bit SlaveRtu::getBitInput(uint16_t index) {
 	assert_param(index < _bit_input_length);
-	return bitRead(_bit_inputs[index >> 3], index & 0x07) ? BitSET : BitRESET;
+	return BitRESET;//bitRead(_bit_inputs[index >> 3], index & 0x07) ? BitSET : BitRESET;
 }
 
 uint8_t SlaveRtu::onReadBitInputs(uint8_t * p_length_tx) {
@@ -338,8 +349,8 @@ uint8_t SlaveRtu::onReadShortInputs(uint8_t * p_length_tx) {
 	if (updateShortInputs(index, length)) return 0x04;
 
 	for (uint8_t i = 0; i < length; i++) {
-		_buff_tx[3 + i + i] = highByte(_short_inputs[index + i]);
-		_buff_tx[4 + i + i] = lowByte(_short_inputs[index + i]);
+		//_buff_tx[3 + i + i] = highByte(_short_inputs[index + i]);
+		//_buff_tx[4 + i + i] = lowByte(_short_inputs[index + i]);
 	}
 
 	_buff_tx[2] = length * 2;
@@ -349,12 +360,12 @@ uint8_t SlaveRtu::onReadShortInputs(uint8_t * p_length_tx) {
 
 void SlaveRtu::setShortInput(uint16_t index, uint16_t val) {
 	assert_param(index < _short_input_length);
-	_short_inputs[index] = val;
+	//_short_inputs[index] = val;
 }
 
 uint16_t SlaveRtu::getShortInput(uint16_t index) {
 	assert_param(index < _short_input_length);
-	return _short_inputs[index];
+	return 0;//_short_inputs[index];
 }
 
 uint8_t SlaveRtu::onReadHoldings(uint8_t * p_length_tx) {
@@ -384,6 +395,8 @@ uint8_t SlaveRtu::onReadHoldings(uint8_t * p_length_tx) {
 		}
 	}
 	else return 0x02;
+
+	_holdings[CHANGE_FLAG] = 0;
 
 	_buff_tx[2] = length * 2;
 	*p_length_tx = _buff_tx[2] + 3;
@@ -430,7 +443,11 @@ bool SlaveRtu::setHoldingResolve(uint16_t index, uint16_t val)
 bool SlaveRtu::setHolding(uint16_t index, uint16_t val) {
 	assert_param(index < _holding_length);
 
-	_holdings[index] = val;
+	if (_holdings[index] != val)
+	{
+		_holdings[index] = val;
+		_holdings[CHANGE_FLAG] = 1;
+	}
 
 	return true;
 }

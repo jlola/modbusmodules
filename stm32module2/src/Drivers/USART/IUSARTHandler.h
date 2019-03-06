@@ -13,6 +13,7 @@ class IUSARTHandler
 {
 public:
 	virtual void OnReceiveData(char data)=0;
+	virtual void OnReceiveData(uint8_t* data, uint16_t size, bool completed)=0;
 	virtual void ReceiverTimeout()=0;
 	virtual ~IUSARTHandler(){};
 };

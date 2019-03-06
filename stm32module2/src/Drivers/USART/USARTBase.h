@@ -19,16 +19,20 @@ protected:
 	USARTBase(USART_TypeDef* usart);
 	uint32_t baudrate;
 	IUSARTHandler* handler;
+	bool received;
 public:
+	void SetBusy();
+	bool IsIdle();
+	bool IsBusy();
+	void ResetBusy();
 	void HWControlledDE(bool enable);
 	bool IsInitialized();
 	USART_TypeDef* GetUsart();
 	virtual void Init(uint32_t speed)=0;
-	//virtual void Send(CString& text);
 	virtual void Send(char pchar);
 	virtual void Enable(bool enable)=0;
 	//OnUSARTReceived Received;
-	void Send(const char* pchar,size_t start,size_t len);
+	virtual void Send(const char* pchar,size_t len);
 	void SetHandler(IUSARTHandler* handler);
 	IUSARTHandler* GetHandler();
 	uint32_t GetSpeed();

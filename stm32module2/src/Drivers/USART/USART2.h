@@ -19,6 +19,7 @@ public:
 	void EnableTimeout(bool enable);
 	void Init(uint32_t speed);
 	void Enable(bool enable);
+	void ReceiveEnable(bool enable);
 	static USARTBase* Instance();
 
 	virtual ~CUSART2();

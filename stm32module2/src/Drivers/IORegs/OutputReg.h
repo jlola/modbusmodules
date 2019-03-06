@@ -24,7 +24,7 @@ class OutputReg : public IWriteReg
 
 public:
 	OutputReg(IIOPin* pin,IModbusSlave* slave);
-	void Refresh();
+	bool Refresh();
 	bool IsValid(uint16_t index, uint16_t reg);
 	bool Write(uint16_t index, uint16_t reg);
 	EDeviceType GetDeviceType();

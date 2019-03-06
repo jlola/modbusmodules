@@ -1,6 +1,9 @@
 #include "ds18B20.h"
 #include "pt.h"
 #include "string.h"
+#include "diag/Trace.h"
+#include "CString.h"
+
 
 DS18B20::DS18B20()
 {
@@ -25,9 +28,14 @@ uint16_t DS18B20::GetTemp()
 {
 	return slave->getHolding(baseAddr+DS18B20_TEMPER);
 }
-void DS18B20::SetTemp(uint16_t temp)
+bool DS18B20::SetTemp(uint16_t temp)
 {
-	slave->setHolding(baseAddr+DS18B20_TEMPER,temp);
+	if (GetTemp()!=temp)
+	{
+		slave->setHolding(baseAddr+DS18B20_TEMPER,temp);
+		return true;
+	}
+	return false;
 }
 
 
@@ -65,11 +73,15 @@ int16_t DS18B20::GetDouble(uint16_t pValue)
 		return result;
 	}
 
+uint8_t error;
+
 uint8_t DS18B20::Read()
 {
 	PT_BEGIN(&ptDS18b20);
 	//PT_WAIT_THREAD(&ptDS18b20 ,OWReset(reset));
 	//PT_WAIT_THREAD(&ptDS18b20 ,OWSearch(newaddr,result));
+
+	static char bytes[sizeof(scratchpadDS1820_t)];
 
 	EOWReset reset;
 	PT_WAIT_THREAD(&ptDS18b20 ,ow->OWReset(reset));
@@ -93,7 +105,6 @@ uint8_t DS18B20::Read()
 
 			PT_WAIT_THREAD(&ptDS18b20 ,ow->OWWrite(ReadScratchpad_COMMAND));
 
-			static char bytes[sizeof(scratchpadDS1820_t)];
 			PT_WAIT_THREAD(&ptDS18b20,ow->OWRead_bytes((uint8_t*)bytes,sizeof(scratchpadDS1820_t)));
 
 			scratchpadDS1820_t *scratchpad = (scratchpadDS1820_t*)bytes;
@@ -101,7 +112,7 @@ uint8_t DS18B20::Read()
 			if ( ow->OWCrc8((uint8_t*)bytes,sizeof(scratchpadDS1820_t)) != 0x00 ||
 					scratchpad->reserved0!=0xFF)
 			{
-				SetError(1);
+				error = 1;
 			}
 			else
 			{
@@ -109,13 +120,15 @@ uint8_t DS18B20::Read()
 
 				SetTemp(GetDouble(intPart));
 
-				SetError(0);
+				error = 0;
 			}
 		}
 	}
 	else {
-		SetError(1);
+		error = 1;
 	}
+
+	SetError(error);
 
 	PT_END(&ptDS18b20);
 }

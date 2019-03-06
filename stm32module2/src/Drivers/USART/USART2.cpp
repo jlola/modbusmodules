@@ -13,8 +13,10 @@
 #include "stm32f0xx_usart.h" // under Libraries/STM32F4xx_StdPeriph_Driver/inc and src
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_gpio.h"
+#include "stm32f0xx_dma.h"
 #include <USART2.h>
 
+//uint8_t RxBuffer[16];
 
 CUSART2::CUSART2()
 	: USARTBase::USARTBase(USART2)
@@ -25,9 +27,9 @@ CUSART2::CUSART2()
 void CUSART2::Enable(bool enable)
 {
 	if (enable)
-		USART_ITConfig(usart, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
+		USART_Cmd(usart, ENABLE);
 	else
-		USART_ITConfig(usart, USART_IT_RXNE, DISABLE); // enable the USART1 receive interrupt
+		USART_Cmd(usart, DISABLE);
 }
 
 void CUSART2::SetTimeOut(uint8_t bits)
@@ -71,7 +73,7 @@ void CUSART2::Init(uint32_t pbaudrate)
 		/* enable the peripheral clock for the pins used by
 		 * USART1, PB6 for TX and PB7 for RX
 		 */
-		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+		RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_DMA1, ENABLE);
 
 		/* This sequence sets up the TX and RX pins
 		 * so they work correctly with the USART1 peripheral
@@ -117,8 +119,17 @@ void CUSART2::Init(uint32_t pbaudrate)
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART interrupts are globally enabled
 		NVIC_Init(&NVIC_InitStructure);							 // the properties are passed to the NVIC_Init function which takes care of the low level stuff
 
+		//DMA_Configuration();
 		// finally this enables the complete USART peripheral
 		USART_Cmd(usart, ENABLE);
+}
+
+void CUSART2::ReceiveEnable(bool enable)
+{
+	if (enable)
+		USART_ITConfig(usart, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
+	else
+		USART_ITConfig(usart, USART_IT_RXNE, DISABLE); // enable the USART1 receive interrupt
 }
 
 // this is the interrupt request handler (IRQ) for ALL USART1 interrupts
@@ -155,6 +166,8 @@ extern "C" void USART2_IRQHandler(void)
 		USART_ClearITPendingBit(usart,USART_IT_NE );
 	}
 }
+
+
 
 USARTBase* CUSART2::Instance()
 {

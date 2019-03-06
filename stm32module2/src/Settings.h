@@ -8,7 +8,7 @@
 
 /***************************************************************/
 
-#ifdef SMALL_SWITCH
+#if defined(SMALL_SWITCH) || defined(SMALL_SWITCH_1INPUT)
 
 #ifdef STM32F030C8
 #error "This cpu should not be defined"
@@ -41,6 +41,9 @@
 #define BIN_INPUT1_PIN		GPIO_Pin_5
 
 #else
+
+#define BIN_INPUT1_PORT		GPIOA
+#define BIN_INPUT1_PIN		GPIO_Pin_5
 
 #define BIN_INPUT2_PORT		GPIOA
 #define BIN_INPUT2_PIN		GPIO_Pin_6
@@ -185,7 +188,7 @@
 
 
 #define RS485_SPEED 115200
-#define BUFFER_SIZE		500
+#define BUFFER_SIZE		256
 
 #define INVALID_ADDRESS 0xFFFF
 

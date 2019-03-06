@@ -43,7 +43,7 @@ public:
 	void ReceiverTimeout();
 	bool IsValid(uint16_t index, uint16_t value);
 	bool Write(uint16_t index, uint16_t value);
-	void Refresh();
+	bool Refresh();
 	EDeviceType GetDeviceType();
 	EModbusFunctions GetModbusFunc();
 	uint16_t GetSizeInWords();

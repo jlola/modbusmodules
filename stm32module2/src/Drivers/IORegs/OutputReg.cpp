@@ -26,7 +26,7 @@ void OutputReg::SetOffset(uint16_t offset)
 	slave->setHolding(offset,*((uint16_t*)poutputreg));
 }
 
-void OutputReg::Refresh()
+bool OutputReg::Refresh()
 {
 	assert_param(offset>0);
 
@@ -35,7 +35,9 @@ void OutputReg::Refresh()
 	if (poutputreg->Value!=pin->IsSet())
 	{
 		pin->Set(poutputreg->Value);
+		return true;
 	}
+	return false;
 }
 
 bool OutputReg::IsValid(uint16_t index, uint16_t reg)

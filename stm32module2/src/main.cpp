@@ -40,7 +40,7 @@
 #include "DeviceFunctions.h"
 #include "OneWireManager.h"
 #include "OneWireThread.h"
-#include <Timer6.h>
+#include "Timer6.h"
 #include "Timer3.h"
 #include "slave-rtu.h"
 #include "ModbusSettings.h"
@@ -51,6 +51,7 @@
 #include "CFlash.h"
 #include "IWDG/Watchdog.h"
 #include "diag/Trace.h"
+#include "Timer14.h"
 #include "ModbusObjectFactory.h"
 
 // ----------------------------------------------------------------------------
@@ -81,7 +82,7 @@ int
 main(int argc, char* argv[])
 {
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOF, ENABLE);
-	//trace_initialize();
+	trace_initialize();
 
 	//for compilation intialization of memory addr
 	i = addr;
@@ -99,15 +100,17 @@ main(int argc, char* argv[])
 
 	Timer3::Instance()->Init();
 	OneWireThread owthread(Timer3::Instance(),OW_PORT,OW_PIN,OW_PIN_SOURCE);
-
+	Timer14::Instance()->Init();
 
 
 //	//pin for receive enabled driving
-	IOPin recEnable(REC_ENABLE_PORT,REC_ENABLE_PIN,IOOutput,0, false);
+	IOPin recEnable(REC_ENABLE_PORT,REC_ENABLE_PIN,IOOutput,0, true);
 
-	RS485 rs485(usart1, NULL,&recEnable, 4000000/RS485_SPEED);
+	RS485 rs485(usart1, NULL,&recEnable, 4000000/RS485_SPEED, Timer14::Instance());
 
-	SlaveRtu slave(rs485,1);
+	uint16_t old[2];
+	CFlash::Read16(old,1);
+	SlaveRtu slave(rs485,old[0]);
 	OneWireManager owmanager(&owthread,&slave);
 
 #ifdef STM32F030C8
@@ -123,6 +126,7 @@ main(int argc, char* argv[])
 	owmanager.StartScan();
 
 	rs485.RecEnable(true);
+	recEnable.Set(false);
 	trace_puts("Started");
 	while(1)
 	{

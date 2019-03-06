@@ -98,6 +98,7 @@ void OneWireThread::OWInput()
 void OneWireThread::OWOutput()
 {
 	owire->m_Port->MODER  &= ~(GPIO_MODER_MODER0 << (owire->PinSource * 2));
+	owire->m_Port->OTYPER |= (1 << owire->PinSource);
 	owire->m_Port->MODER |= (((uint32_t)GPIO_Mode_OUT) << (owire->PinSource * 2));
 }
 
@@ -256,11 +257,11 @@ uint8_t OneWireThread::OWRead_bit_Timer(uint8_t & mbit)
 	DelayuS(5);
 	PT_YIELD(&ptReadBitTimer);
 	OWInput();	// let pin float, pull up will raise
-	DelayuS(2);
+	DelayuS(1);
 	PT_YIELD(&ptReadBitTimer);
 	r = OWReadPin();
 	mbit = r;
-	DelayuS(55);
+	DelayuS(45);
 	PT_YIELD(&ptReadBitTimer);
 	PT_SEM_SIGNAL(&ptReadBitTimer,&ptReadBitTimerSem);
 	timer->Stop();
@@ -528,6 +529,7 @@ static const uint8_t dscrc_table[] = {
 //
 uint8_t OneWireThread::OWCrc8( uint8_t *addr, uint8_t len)
 {
+	//assert(addr[0]!=0xFF);
 	uint8_t crc = 0;
 
 	while (len--) {

@@ -63,7 +63,7 @@ void OneWireManager::ModbusSetResetResult(EOWReset reset)
 	slave->setHolding(OW_RESET_RESULT,reset);
 }
 
-void OneWireManager::Refresh()
+bool OneWireManager::Refresh()
 {
 	assert_param(offset>0);
 	RefreshThread();
@@ -77,25 +77,15 @@ uint8_t OneWireManager::RefreshThread()
 	PT_BEGIN(&ptRefresh);
 	count = GetCount();
 
-	EOWReset reset;
-	PT_WAIT_THREAD(&ptRefresh,ow->OWReset(reset));
-	ModbusSetResetResult(reset);
-
-	if (reset == EOWResetPresent)
+	for(indexRefresh=0;indexRefresh<count;indexRefresh++)
 	{
-		for(indexRefresh=0;indexRefresh<count;indexRefresh++)
-		{
-			PT_WAIT_THREAD(&ptRefresh,devices[indexRefresh].Read());
-		}
-
-		if (slave->getHolding(OW_SCAN_OFFSET))
-		{
-			slave->setHolding(OW_SCAN_OFFSET,0);
-			PT_WAIT_THREAD(&ptRefresh,Scan());
-		}
+		PT_WAIT_THREAD(&ptRefresh,devices[indexRefresh].Read());
 	}
-	else {
+
+	if (slave->getHolding(OW_SCAN_OFFSET))
+	{
 		slave->setHolding(OW_SCAN_OFFSET,0);
+		PT_WAIT_THREAD(&ptRefresh,Scan());
 	}
 
 	PT_END(&ptRefresh);

@@ -75,7 +75,7 @@ public:
 	void SetError(uint16_t error);
 
 	uint16_t GetTemp();
-	void SetTemp(uint16_t error);
+	bool SetTemp(uint16_t error);
 };
 
 

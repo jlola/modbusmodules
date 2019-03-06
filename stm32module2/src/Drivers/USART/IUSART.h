@@ -17,8 +17,14 @@ public:
 	virtual void EnableTimeout(bool enable)=0;
 	virtual void Enable(bool enable);
 	virtual void SetHandler(IUSARTHandler* handler)=0;
+	virtual void ReceiveEnable(bool enable)=0;
+	virtual void Send(const char* pchar,size_t len)=0;
 	virtual void Send(char pchar)=0;
 	virtual void HWControlledDE(bool enable)=0;
+	virtual bool IsIdle()=0;
+	virtual bool IsBusy()=0;
+	virtual void ResetBusy()=0;
+	virtual void SetBusy()=0;
 	virtual ~IUSART(){}
 };
 

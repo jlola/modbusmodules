@@ -5,7 +5,27 @@
 #include "stm32f0xx_crc.h"
 #include "stm32f0xx_rcc.h"
 
-uint32_t getTrueRandomNumber(void) {
+static uint32_t miState;
+
+int32_t rand2( void )
+{
+    miState ^= (miState << 13);
+    miState ^= (miState >> 17);
+    miState ^= (miState << 15);
+
+    return (miState * 1332534557) & 0x7FFFFFFF;
+}
+
+void srand( uint32_t seed )
+{
+    // a zero seed will not work!
+    if (seed == 0)
+        seed = 0x55aaff00;
+
+    miState = seed;
+}
+
+uint32_t getTrueRandomNumber(uint16_t max) {
 
 ADC_InitTypeDef ADC_InitStructure;
 
@@ -59,7 +79,7 @@ for (i = 0; i < 8; i++) {
 ADC_Cmd(ADC1, DISABLE);
 RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, DISABLE);
 
-return CRC_CalcCRC(0xBADA55E5);
+return CRC_CalcCRC(0xBADA55E5) % max;
 
 }
 

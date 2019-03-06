@@ -38,7 +38,7 @@ public:
 
 	void ModbusSetResetResult(EOWReset reset);
 	uint8_t Scan();
-	void Refresh();
+	bool Refresh();
 
 	bool IsValid(uint16_t index, uint16_t reg);
 

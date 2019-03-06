@@ -28,6 +28,7 @@ typedef enum
 #define TYPE_DEFS_OFFSET				DEVICEBASE+2
 #define RESET_REG_OFFSET				DEVICEBASE+3
 #define LAST_INDEX						DEVICEBASE+4
+#define CHANGE_FLAG						DEVICEBASE+5
 
 #define TYPE_DEFS_START_ADDRESS			10
 ////----------------Types def--------------------//

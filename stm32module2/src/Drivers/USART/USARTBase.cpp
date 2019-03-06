@@ -15,11 +15,45 @@ USARTBase::USARTBase(USART_TypeDef* usart)
 	isinit = false;
 	baudrate = 0;
 	usart = NULL;
+	received = false;
 }
 
 USART_TypeDef* USARTBase::GetUsart()
 {
 	return usart;
+}
+
+void USARTBase::ResetBusy()
+{
+	received = false;
+	//USART_ClearFlag(usart,USART_FLAG_IDLE);
+	//ReceiveEnable(false);
+	//DMA1_Channel3->CNDTR = 255;
+	//ReceiveEnable(true);
+}
+
+void USARTBase::SetBusy()
+{
+	received = true;
+}
+
+bool USARTBase::IsIdle()
+{
+	FlagStatus status = USART_GetFlagStatus(usart,USART_FLAG_IDLE);
+	if (status==SET)
+		return true;
+
+	return false;
+}
+
+bool USARTBase::IsBusy()
+{
+	return received;//DMA1_Channel3->CNDTR < 255;
+	//FlagStatus status = USART_GetFlagStatus(usart,USART_FLAG_NE);
+	//if (status==SET)
+		//return true;
+
+	//return false;
 }
 
 bool USARTBase::IsInitialized()
@@ -31,19 +65,6 @@ uint32_t USARTBase::GetSpeed()
 {
 	return baudrate;
 }
-
-//void USARTBase::Send(CString& text)
-//{
-//
-//	for(size_t i=0;i<text.length();i++)
-//	{
-//		USART_SendData(usart, text[i]);
-//
-//		while (USART_GetFlagStatus(usart, USART_FLAG_TC) == RESET);
-//		USART_ClearFlag(usart,USART_FLAG_TC);
-//
-//	}
-//}
 
 void USARTBase::SetHandler(IUSARTHandler* handler)
 {
@@ -76,9 +97,9 @@ void USARTBase::Send(char pchar)
 	while (USART_GetFlagStatus(usart, USART_FLAG_TC) == RESET);
 }
 
-void USARTBase::Send(const char* pchar,size_t start,size_t len)
+void USARTBase::Send(const char* pchar,size_t len)
 {
-	for(size_t i = start;i<len;i++)
+	for(size_t i = 0; i<len; i++)
 	{
 		Send(pchar[i]);
 	}

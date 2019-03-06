@@ -22,7 +22,7 @@ class IModbusObject
 public:
 	virtual bool IsValid(uint16_t index, uint16_t reg)=0;
 	virtual bool Write(uint16_t index, uint16_t reg)=0;
-	virtual void Refresh()=0;
+	virtual bool Refresh()=0;
 	virtual EDeviceType GetDeviceType()=0;
 	virtual EModbusFunctions GetModbusFunc()=0;
 	virtual uint16_t GetSizeInWords()=0;

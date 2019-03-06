@@ -1,6 +1,7 @@
 #ifndef __Queue_H__
 #define __Queue_H__
 
+#include "string.h"
 
 template <class Elem>
 class Queue
@@ -9,6 +10,8 @@ class Queue
     Queue(int MaxSize=500);
     Queue(const Queue<Elem> &OtherQueue);
     ~Queue(void);
+
+    void SetData(uint8_t* data,uint8_t len);
 
     void       Enqueue(const Elem &Item);    // Adds Item to Queue end
     Elem       Dequeue(void);                // Returns Item from Queue
@@ -57,6 +60,20 @@ template <class Elem>
 Queue<Elem>::~Queue(void)
 {
   delete[] Data;
+}
+
+template <class Elem>
+void Queue<Elem>::SetData(uint8_t* data,uint8_t len)
+{
+	ElemCount = 0;
+	uint8_t lencpy = len;
+	if ( lencpy >= MAX_NUM )
+		lencpy = MAX_NUM;
+
+	memcpy(Data,data,lencpy);
+	Beginning = 0;
+	ElemCount = lencpy;
+	End = ElemCount - 1;
 }
 
 // Enqueue() function

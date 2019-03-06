@@ -15,7 +15,7 @@ public:
 	AddressReg(IModbusSlave* pslave);
 	uint16_t baseAddress;
 	uint16_t offset;
-	void Refresh();
+	bool Refresh();
 	bool IsValid(uint16_t index, uint16_t reg);
 	bool Write(uint16_t index, uint16_t reg);
 	virtual ~AddressReg();

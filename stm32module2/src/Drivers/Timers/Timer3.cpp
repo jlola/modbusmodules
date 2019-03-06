@@ -58,7 +58,7 @@ void Timer3::Init()
 	nvicStructure.NVIC_IRQChannel = TIM3_IRQn;
 
 	//nvicStructure.NVIC_IRQChannelPreemptionPriority = configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY;;
-	nvicStructure.NVIC_IRQChannelPriority = 3;
+	nvicStructure.NVIC_IRQChannelPriority = 1;
 	nvicStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&nvicStructure);
 }

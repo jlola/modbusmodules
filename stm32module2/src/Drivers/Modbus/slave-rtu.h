@@ -60,6 +60,7 @@ class SlaveRtu : public IModbusSlave
 {
 	int resolversCount;
 	IModbusObject** writeResolvers;
+	RS485 & _usart;
 public:
 	SlaveRtu(RS485 & usart, uint8_t address);
 	virtual ~SlaveRtu();
@@ -70,8 +71,7 @@ public:
 
 	void init(IModbusObject* writeResolvers[],size_t resolversCount);
 	void setAddress(uint8_t address);
-	void handler(const char* pchar, uint16_t length_rx);
-	void handleTimIrq();
+	void handler(const uint8_t* pchar, uint16_t length_rx);
 
 	void initBitInputs(uint16_t length);
 	void initShortInputs(uint16_t length);
@@ -93,15 +93,9 @@ public:
 	bool setHolding(uint16_t index, uint16_t val);
 	bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length);
 	uint16_t getHolding(uint16_t index);
-
-//	OnUpdateDelegate OnUpdateHoldings;
-//	OnUpdateDelegate OnUpdateShortInputs;
-//	OnUpdateDelegate OnUpdateCoils;
-//	OnUpdateDelegate OnUpdateBitInputs;
-
 protected:
 
-
+	bool inline IsValidAddress(uint8_t address);
 	virtual uint8_t updateBitInputs(uint16_t index, uint16_t length)
 	{
 		return 0;
@@ -116,8 +110,6 @@ protected:
 	};
 
 private:
-	RS485 & _usart;
-
 
 	bool checkFrameCrc(const char *p, uint8_t length);
 	void appendCrcAndReply(uint8_t length_tx);

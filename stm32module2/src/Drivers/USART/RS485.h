@@ -3,36 +3,52 @@
 
 #include "USARTBase.h"
 #include "IOPin.h"
-#include "Queue.h"
 #include "IUSARTHandler.h"
 #include "IUSART.h"
+#include "ITimer.h"
+#include "ITimerHandler.h"
 
-class RS485 : IUSARTHandler
+typedef enum
 {
+	Receiving,
+	Sending,
+	Processing
+} RS485States;
+
+class RS485 : IUSARTHandler, ITimerHandler
+{
+	ITimer* timer;
 	IUSART* usart;
 	IOPin* de;
 	IOPin* re;
-	Queue<char> queue;
 	int timeOutUs;
 	bool packetCompleted;
+	char* sendBuffer;
+	char sendBufferLength;
 	void USARTReceivedData(char pdata);
-	bool recEnable;
+	uint16_t bufferDataLen;
+
 	static RS485* instance;
+	RS485States state;
+
+	void OnHWTimer(uint8_t us);
+	uint16_t Rand();
 public:
 	void ReceiverTimeout();
-	void ClearQueue();
+	void ReadBuffer(uint8_t* & buffer,uint16_t & size);
 	void OnReceiveData(char pdata);
-	RS485(IUSART* usart,/*ITimer* ptimer,*/ IOPin* pde, IOPin* pre, int timeOutUs);
+	RS485(IUSART* usart,/*ITimer* ptimer,*/ IOPin* pde, IOPin* pre, int timeOutUs, ITimer* timer);
 	bool PacketCompleted();
-
+	void OnReceiveData(uint8_t* data, uint16_t size, bool completed);
 	void OnData(char data);
-	void Send(char* pchar,char len);
+	void Send(char* pchar,char len,bool withDelay);
+	void CopyToBuffer(uint8_t* recdata,uint16_t size);
 	//void Send(CString & text);
-	void Send(char pchar);
-	bool Read(char & pchar);
 	//void ClearFlags();
 	//enable receiving data
 	void RecEnable(bool enable);
+
+	void ResetBuffer();
 };
 
 

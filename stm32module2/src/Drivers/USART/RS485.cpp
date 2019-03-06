@@ -4,46 +4,89 @@
 #include "RS485.h"
 #include "USARTBase.h"
 #include "Settings.h"
+#include "string.h"
+#include "stdlib.h"
+#include "diag/Trace.h"
 
-RS485::RS485(IUSART* usart, IOPin* pde, IOPin* pre, int ptimeOutUs)
-: packetCompleted(false),queue(BUFFER_SIZE),recEnable(false)
+uint8_t _buffer[BUFFER_SIZE];
+
+RS485::RS485(IUSART* usart, IOPin* de, IOPin* re, int timeOutUs, ITimer* timer)
+: packetCompleted(false)
 {
-	timeOutUs = ptimeOutUs;
-
-	de = pde;
-	re = pre;
+	this->timer = timer;
+	this->timeOutUs = timeOutUs;
+	this->sendBuffer = NULL;
+	this->sendBufferLength = 0;
+	this->de = de;
+	this->re = re;
 	this->usart = usart;
-	this->usart->SetTimeOut(4);
+	this->usart->SetTimeOut(10);
 	this->usart->SetHandler(this);
 	this->usart->HWControlledDE(true);
+	this->timer->SetReceiver(this);
+	this->state = Receiving;
+	this->bufferDataLen = 0;
 }
 
+void RS485::OnHWTimer(uint8_t us)
+{
+	timer->Stop();
+	//if (!usart->IsBusy())
+	//usart->Send(sendBuffer,sendBufferLength);
 
+}
+
+void RS485::OnReceiveData(uint8_t* data, uint16_t size, bool completed)
+{
+	trace_printf("received: %d\n",size);
+	switch(state)
+	{
+		case Receiving:
+			//trace_puts("OnReceiveData Receiving");
+
+			CopyToBuffer(data,size);
+			if (completed)
+			{
+				packetCompleted = true;
+				state = Processing;
+			}
+			break;
+		case Sending:
+			trace_puts("OnReceiveData Sending");
+			if (completed)
+			{
+				state = Receiving;
+			}
+			break;
+		case Processing:
+			trace_puts("OnReceiveData Processing");
+			usart->SetBusy();
+			if (completed)
+				state = Receiving;
+			break;
+	}
+}
 
 void RS485::ReceiverTimeout()
 {
 	usart->EnableTimeout(false);
-	recEnable = false;
 	packetCompleted = true;
-}
-
-void RS485::ClearQueue()
-{
-	while(queue.ElemNum())
-		queue.Dequeue();
 }
 
 void RS485::OnReceiveData(char pdata)
 {
-	if (!recEnable) return;
-
-	queue.Enqueue(pdata);
-	usart->EnableTimeout(true);
 }
 
 void RS485::RecEnable(bool enable)
 {
-	recEnable = enable;
+	state = Receiving;
+	usart->Enable(enable);
+	usart->ReceiveEnable(enable);
+}
+
+void RS485::ResetBuffer()
+{
+	bufferDataLen = 0;
 }
 
 bool RS485::PacketCompleted()
@@ -56,33 +99,49 @@ bool RS485::PacketCompleted()
 	return false;
 }
 
-bool RS485::Read(char & pchar)
+void RS485::CopyToBuffer(uint8_t* recdata,uint16_t size)
 {
-	if (queue.ElemNum()>0)
+	bufferDataLen += size;
+	memcpy(_buffer,recdata,size);
+}
+
+void RS485::ReadBuffer(uint8_t* & buffer,uint16_t & size)
+{
+	buffer = _buffer;
+	size = bufferDataLen;
+}
+
+uint16_t RS485::Rand()
+{
+	return ((rand() % 0xF)*10);
+}
+
+void RS485::Send(char* pchar,char len,bool withDelay)
+{
+	sendBuffer = pchar;
+	sendBufferLength = len;
+
+	state = Sending;
+
+	uint16_t delay = this->Rand();
+	if (withDelay)
 	{
-		pchar = queue.Dequeue();
-		return true;
+		timer->SetTimeUs(delay);
+		timer->Start();
+		while(timer->IsStarted());
 	}
-	return false;
-}
 
-void RS485::Send(char pchar)
-{
-	if (de!=NULL) de->Set(true);
-	if (re!=NULL) re->Set(true);
-	usart->Send(pchar);
-	if (re!=NULL) re->Set(false);
-	if (de!=NULL) de->Set(false);
-}
-
-void RS485::Send(char* pchar,char len)
-{
-	if (de!=NULL) de->Set(true);
-	if (re!=NULL) re->Set(true);
-	for(char i=0;i<len;i++)
-		usart->Send(pchar[i]);
-	if (de!=NULL) de->Set(false);
-	if (re!=NULL) re->Set(false);
+	if (!usart->IsBusy())
+	{
+		usart->Send(pchar,len);
+		trace_printf("CNDTR: %d, sended: %d\n",DMA1_Channel3->CNDTR,len);
+	}
+	else
+	{
+		trace_printf("IsBusy, Delay: %d\n",delay);
+		state = Receiving;
+	}
+	usart->ResetBusy();
 }
 
 #endif

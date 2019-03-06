@@ -56,10 +56,13 @@ void RFIDRegs::ReceiverTimeout()
 	//trace_puts((const char*)regs.buffer);
 }
 
-void RFIDRegs::Refresh()
+bool RFIDRegs::Refresh()
 {
 	//uint16_t reg = slave->getHolding(offset);
 	this->slave->setHoldings(offset,(uint16_t*)&regs,sizeof(regs)/2);
+	if (regs.NewDataFlag)
+		return true;
+	return false;
 }
 
 EDeviceType RFIDRegs::GetDeviceType()

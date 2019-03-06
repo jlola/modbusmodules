@@ -444,7 +444,7 @@ void CString::PadRight(uint16_t totalLength)
 
 CString CString::Format(const char *format, ... )
 {
-	char mbuffer[1000];
+	char mbuffer[100];
 
 	va_list arg_list;
 	va_start(arg_list,format);

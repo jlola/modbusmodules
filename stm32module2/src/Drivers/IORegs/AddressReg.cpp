@@ -12,9 +12,9 @@ void AddressReg::Init(uint16_t baseAddress)
 	this->baseAddress = baseAddress;
 }
 
-void AddressReg::Refresh()
+bool AddressReg::Refresh()
 {
-
+	return false;
 }
 
 bool AddressReg::IsValid(uint16_t index, uint16_t reg)

@@ -23,7 +23,7 @@ class InputReg : public IWriteReg
 	IModbusSlave* slave;
 public:
 	InputReg(IIOPin* pin, IModbusSlave* slave);
-	void Refresh();
+	bool Refresh();
 	bool IsValid(uint16_t index, uint16_t reg);
 	bool Write(uint16_t index, uint16_t reg);
 
