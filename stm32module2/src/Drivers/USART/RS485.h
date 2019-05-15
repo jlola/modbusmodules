@@ -29,12 +29,13 @@ class RS485 : IUSARTHandler, ITimerHandler
 	uint16_t bufferDataLen;
 
 	static RS485* instance;
-	RS485States state;
+	//RS485States state;
 
 	void OnHWTimer(uint8_t us);
-	uint16_t Rand();
+	uint16_t Rand(int bytesToSend);
 public:
 	void ReceiverTimeout();
+	void SendingCompleted();
 	void ReadBuffer(uint8_t* & buffer,uint16_t & size);
 	void OnReceiveData(char pdata);
 	RS485(IUSART* usart,/*ITimer* ptimer,*/ IOPin* pde, IOPin* pre, int timeOutUs, ITimer* timer);
@@ -43,11 +44,7 @@ public:
 	void OnData(char data);
 	void Send(char* pchar,char len,bool withDelay);
 	void CopyToBuffer(uint8_t* recdata,uint16_t size);
-	//void Send(CString & text);
-	//void ClearFlags();
-	//enable receiving data
 	void RecEnable(bool enable);
-
 	void ResetBuffer();
 };
 

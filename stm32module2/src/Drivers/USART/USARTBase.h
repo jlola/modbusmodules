@@ -19,7 +19,7 @@ protected:
 	USARTBase(USART_TypeDef* usart);
 	uint32_t baudrate;
 	IUSARTHandler* handler;
-	bool received;
+	bool isbusy;
 public:
 	void SetBusy();
 	bool IsIdle();

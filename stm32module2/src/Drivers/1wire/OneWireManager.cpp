@@ -39,7 +39,7 @@ bool OneWireManager::Write(uint16_t index, uint16_t reg)
 	assert_param(offset>0);
 	if (index==OW_SCAN_OFFSET && reg > 0)
 	{
-		slave->setHolding(OW_SCAN_OFFSET,1);
+		slave->setHolding(OW_SCAN_OFFSET,1,false);
 		return true;
 	}
 	return false;
@@ -54,13 +54,13 @@ uint8_t OneWireManager::GetCount()
 void OneWireManager::SetCount(uint8_t count)
 {
 	assert_param(offset>0);
-	slave->setHolding(OW_COUNT_OFFSET,count);
+	slave->setHolding(OW_COUNT_OFFSET,count,true);
 }
 
 void OneWireManager::ModbusSetResetResult(EOWReset reset)
 {
 	assert_param(offset>0);
-	slave->setHolding(OW_RESET_RESULT,reset);
+	slave->setHolding(OW_RESET_RESULT,reset,true);
 }
 
 bool OneWireManager::Refresh()
@@ -84,7 +84,7 @@ uint8_t OneWireManager::RefreshThread()
 
 	if (slave->getHolding(OW_SCAN_OFFSET))
 	{
-		slave->setHolding(OW_SCAN_OFFSET,0);
+		slave->setHolding(OW_SCAN_OFFSET,0,false);
 		PT_WAIT_THREAD(&ptRefresh,Scan());
 	}
 

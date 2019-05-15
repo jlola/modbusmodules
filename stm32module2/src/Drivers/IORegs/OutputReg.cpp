@@ -23,7 +23,7 @@ void OutputReg::SetOffset(uint16_t offset)
 	uint16_t reg = slave->getHolding(offset);
 	SOutputReg* poutputreg = (SOutputReg*)&reg;
 	poutputreg->PinNumber = pin->GetPinNumber();
-	slave->setHolding(offset,*((uint16_t*)poutputreg));
+	slave->setHolding(offset,*((uint16_t*)poutputreg),true);
 }
 
 bool OutputReg::Refresh()
@@ -57,7 +57,7 @@ bool OutputReg::Write(uint16_t index, uint16_t regp)
 	SOutputReg* poutputreg = (SOutputReg*)&reg;
 	poutputreg->PinNumber = pin->GetPinNumber();
 	poutputreg->Value = sregp->Value;
-	slave->setHolding(offset,*((uint16_t*)poutputreg));
+	slave->setHolding(offset,*((uint16_t*)poutputreg),true);
 
 	return true;
 }

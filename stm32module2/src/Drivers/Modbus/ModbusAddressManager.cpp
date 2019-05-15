@@ -28,7 +28,7 @@ void ModbusAddressManager::ComputeAddresses()
 {
 	uint8_t typesCounts = GetObjectTypeCounts();
 	//slave.setHolding(COUNT_OF_TYPES_OFFSET,COUNT_OF_TYPES_VALUE);
-	slave->setHolding(COUNT_OF_TYPES_OFFSET,typesCounts);
+	slave->setHolding(COUNT_OF_TYPES_OFFSET,typesCounts,true);
 	//count of types
 	int typeInfoLength = sizeof(STypeInfo) / 2;
 	int allTypesLength = typeInfoLength*typesCounts;
@@ -68,7 +68,7 @@ void ModbusAddressManager::ComputeAddresses()
 	}
 
 	assert_param(startAddressOfInstances<slave->GetMaxIndex());
-	slave->setHolding(LAST_INDEX,startAddressOfInstances+instancesSize);
+	slave->setHolding(LAST_INDEX,startAddressOfInstances+instancesSize,true);
 }
 
 uint8_t ModbusAddressManager::GetObjectTypeCounts()
@@ -89,10 +89,10 @@ uint8_t ModbusAddressManager::GetObjectTypeCounts()
 
 void ModbusAddressManager::WriteTypeInfo(uint8_t addr, STypeInfo type)
 {
-	slave->setHolding(addr, type.Type);
-	slave->setHolding(addr+1, type.Count);
-	slave->setHolding(addr+2, type.Address);
-	slave->setHolding(addr+3, type.ReadFunc);
+	slave->setHolding(addr, type.Type,true);
+	slave->setHolding(addr+1, type.Count,true);
+	slave->setHolding(addr+2, type.Address,true);
+	slave->setHolding(addr+3, type.ReadFunc,true);
 }
 
 ModbusAddressManager::~ModbusAddressManager() {

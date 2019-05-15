@@ -25,7 +25,7 @@ bool InputReg::Write(uint16_t index, uint16_t regp)
 	pinputreg->PinNumber = pin->GetPinNumber();
 	pinputreg->Latch = sregp->Latch;
 	pinputreg->LatchDir = sregp->LatchDir;
-	slave->setHolding(offset,*((uint16_t*)pinputreg));
+	slave->setHolding(offset,*((uint16_t*)pinputreg),true);
 	return true;
 }
 
@@ -38,7 +38,7 @@ void InputReg::SetOffset(uint16_t offset)
 	pinputreg->Latch = 0;
 	pinputreg->Quality = 1;
 	pinputreg->PinNumber = pin->GetPinNumber();
-	slave->setHolding(offset,*((uint16_t*)pinputreg));
+	slave->setHolding(offset,*((uint16_t*)pinputreg),true);
 }
 
 bool InputReg::Refresh()
@@ -51,7 +51,7 @@ bool InputReg::Refresh()
 			pinputreg->Latch = 1;
 
 		pinputreg->Value = pin->IsSet();
-		slave->setHolding(offset,*((uint16_t*)pinputreg));
+		slave->setHolding(offset,*((uint16_t*)pinputreg),true);
 		return true;
 	}
 	return false;

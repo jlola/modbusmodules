@@ -44,5 +44,7 @@ bool IOPin::IsSet()
 			return GPIO_ReadInputDataBit(GPIOx,GPIO_Pin)==Bit_SET ? true : false;
 		case IOOutput:
 			return GPIO_ReadOutputDataBit(GPIOx,GPIO_Pin)==Bit_SET ? true : false;
+		default:
+			return false;
 	}
 }

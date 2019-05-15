@@ -56,7 +56,7 @@ void CUSART1::Init(uint32_t baudrate)
 
 	InitUsart(baudrate);
 	DMA_ConfigurationUsartReceive();
-	DMA_ConfigurationUsartSend();
+	//DMA_ConfigurationUsartSend();
 }
 
 void CUSART1::InitUsart(uint32_t pbaudrate)
@@ -140,8 +140,7 @@ void CUSART1::InitUsart(uint32_t pbaudrate)
 		 * if the USART1 receive interrupt occurs
 		 */
 		USART_ITConfig(usart, USART_IT_IDLE, ENABLE);
-		//USART_ITConfig(usart, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
-		//USART_ITConfig(usart, USART_IT_RTO, ENABLE); // enable the USART1 receive interrupt
+		USART_ITConfig(usart, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt
 
 		NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;		 // we want to configure the USART1 interrupts
 		NVIC_InitStructure.NVIC_IRQChannelPriority = 2;// this sets the priority group of the USART1 interrupts
@@ -179,6 +178,13 @@ void CUSART1::DMA_ConfigurationUsartSend()
 
 	/* Enable USARTy TX DMA1 Channel */
 	//DMA_Cmd(dma1ChannelSend, ENABLE);
+	NVIC_InitTypeDef NVIC_InitStructure; // this is used to configure the NVIC (nested vector interrupt controller)
+	DMA_ITConfig(DMA1_Channel2,DMA_IT_TC ,ENABLE);
+	NVIC_InitStructure.NVIC_IRQChannel = DMA1_Channel2_3_IRQn;		 // we want to configure the USART1 interrupts
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 2;// this sets the priority group of the USART1 interrupts
+	//NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;		 // this sets the subpriority inside the group
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			 // the USART interrupts are globally enabled
+	NVIC_Init(&NVIC_InitStructure);
 }
 
 void CUSART1::DMA_ConfigurationUsartReceive()
@@ -190,7 +196,7 @@ void CUSART1::DMA_ConfigurationUsartReceive()
   DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
   DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
   DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Circular;//DMA_Mode_Normal
+  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;//DMA_Mode_Circular
   DMA_InitStructure.DMA_Priority = DMA_Priority_VeryHigh;
   DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
   DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&usart->RDR;
@@ -218,8 +224,8 @@ void CUSART1::ReceiveEnable(bool enable)
 {
 	if (enable)
 	{
-		DMA_Cmd(DMA1_Channel3, DISABLE);
-		//DMA1_Channel3->CNDTR = sizeof(RxBuffer);
+		//DMA_Cmd(DMA1_Channel3, DISABLE);
+		DMA1_Channel3->CNDTR = sizeof(RxBuffer);
 		DMA_Cmd(DMA1_Channel3, ENABLE);
 	}
 	else
@@ -228,9 +234,14 @@ void CUSART1::ReceiveEnable(bool enable)
 
 extern "C" void DMA1_Channel2_3_IRQHandler(void)
 {
-	DMA_ClearITPendingBit(DMA1_IT_TC3);
-	DMA_Cmd(DMA1_Channel3, DISABLE);
-	DMA1_Channel3->CNDTR = sizeof(RxBuffer);
+	if (DMA_GetITStatus(DMA1_IT_TC2)==SET)
+	{
+		DMA_ClearITPendingBit(DMA1_IT_TC2);
+		DMA_Cmd(DMA1_Channel2, DISABLE);
+		IUSARTHandler* handler = CUSART1::Instance()->GetHandler();
+		if (handler!=NULL)
+			handler->SendingCompleted();
+	}
 }
 
 /**
@@ -274,7 +285,6 @@ extern "C" void USART1_IRQHandler(void)
 {
 	IUSARTHandler* handler = CUSART1::Instance()->GetHandler();
 	USART_TypeDef* usart = CUSART1::Instance()->GetUsart();
-	char pdata = 0x00;
 	// check if the USART1 receive interrupt flag was set
 	if (USART_GetITStatus(usart,USART_IT_RTO))
 	{
@@ -286,13 +296,12 @@ extern "C" void USART1_IRQHandler(void)
 	}
 	else if(USART_GetITStatus(USART1,USART_IT_RXNE))
 	{
-		pdata = USART_ReceiveData(usart);
-		if (handler!=NULL)
-			handler->OnReceiveData(pdata);
+		CUSART1::Instance()->SetBusy();
+		USART_ReceiveData(usart);
 	}
 	else if(USART_GetITStatus(usart,USART_IT_ORE)||USART_GetFlagStatus(usart,USART_FLAG_ORE))
 	{
-		pdata = USART_ReceiveData(usart);
+		USART_ReceiveData(usart);
 		//instance->ClearQueue();
 		USART_ClearITPendingBit(usart,USART_IT_ORE);
 	}
@@ -302,10 +311,10 @@ extern "C" void USART1_IRQHandler(void)
 		DMA_Cmd(DMA1_Channel3, DISABLE);
 		auto cndtr = sizeof(RxBuffer) - DMA1_Channel3->CNDTR;
 		//DMA1_Channel3->CNDTR = sizeof(RxBuffer);
-		DMA_Cmd(DMA1_Channel3, ENABLE);
-		//if (handler!=NULL)
-			//handler->OnReceiveData(RxBuffer,cndtr);
-		usart_rx_check(cndtr);
+		if (handler!=NULL)
+			handler->OnReceiveData(RxBuffer,cndtr,true);
+		//DMA_Cmd(DMA1_Channel3, ENABLE);
+		//usart_rx_check(cndtr);
 	}
 	else if(USART_GetITStatus(usart,USART_IT_NE ))
 	{

@@ -19,7 +19,7 @@ DeviceFunctions::DeviceFunctions(IModbusSlave * slave, IModbusObjectFactory* fac
 
 void DeviceFunctions::Init()
 {
-	slave->setHolding(TYPE_DEFS_OFFSET,TYPE_DEFS_START_ADDRESS);
+	slave->setHolding(TYPE_DEFS_OFFSET,TYPE_DEFS_START_ADDRESS,true);
 
 	ModbusAddressManager addressmanager(slave,
 			modbusobjects,
@@ -35,7 +35,7 @@ void DeviceFunctions::Process()
 {
 #ifndef UNITTEST
 	uint16_t csrH = RCC->CSR >> 16;
-	slave->setHolding(RESET_REG_OFFSET,csrH);
+	slave->setHolding(RESET_REG_OFFSET,csrH,true);
 #endif
 
 	int size = factory->ModbusObjectsCount();

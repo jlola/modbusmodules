@@ -43,33 +43,38 @@ ModbusObjectFactory::ModbusObjectFactory(IModbusSlave * pslave,
 {
 	modbusobjectsCount = 0;
 	modbusobjects = NULL;
+
 #if defined(SMALL_SWITCH) || defined(SMALL_SWITCH_1INPUT)
+
 	IOPin* input1 = new IOPin(BIN_INPUT1_PORT,BIN_INPUT1_PIN,IOInput,BIN_INPUT1_BOARD_PIN);
 	IOPin* output1 = new IOPin(BIN_OUTPUT1_PORT,BIN_OUTPUT1_PIN,IOOutput,BIN_OUTPUT1_BOARD_PIN);
 	InputReg* reginput1 = new InputReg(input1, pslave);
 	OutputReg* regoutput1 = new OutputReg(output1,pslave);
 
-	modbusobjectsCount = 3;
-	modbusobjects = new IModbusObject*[modbusobjectsCount];
+	#if defined(SMALL_SWITCH)
+		modbusobjectsCount = 5;
+		modbusobjects = new IModbusObject*[modbusobjectsCount];
 
-	modbusobjects[0] = dynamic_cast<IModbusObject*>(reginput1);
-	modbusobjects[1] = dynamic_cast<IModbusObject*>(regoutput1);
-	modbusobjects[2] = dynamic_cast<IModbusObject*>(owmanager);
-#ifndef SMALL_SWITCH_1INPUT
-	IOPin* input2 = new IOPin(BIN_INPUT2_PORT,BIN_INPUT2_PIN,IOInput,BIN_INPUT2_BOARD_PIN);
-	IOPin* input3 = new IOPin(BIN_INPUT3_PORT,BIN_INPUT3_PIN,IOInput,BIN_INPUT3_BOARD_PIN);
-	InputReg* reginput2 = new InputReg(input2, pslave);
-	InputReg* reginput3 = new InputReg(input3, pslave);
+		IOPin* input2 = new IOPin(BIN_INPUT2_PORT,BIN_INPUT2_PIN,IOInput,BIN_INPUT2_BOARD_PIN);
+		IOPin* input3 = new IOPin(BIN_INPUT3_PORT,BIN_INPUT3_PIN,IOInput,BIN_INPUT3_BOARD_PIN);
+		InputReg* reginput2 = new InputReg(input2, pslave);
+		InputReg* reginput3 = new InputReg(input3, pslave);
 
-	modbusobjectsCount = 5;
-	modbusobjects = new IModbusObject*[modbusobjectsCount];
+		modbusobjects[0] = dynamic_cast<IModbusObject*>(reginput1);
+		modbusobjects[1] = dynamic_cast<IModbusObject*>(reginput2);
+		modbusobjects[2] = dynamic_cast<IModbusObject*>(reginput3);
+		modbusobjects[3] = dynamic_cast<IModbusObject*>(regoutput1);
+		modbusobjects[4] = dynamic_cast<IModbusObject*>(owmanager);
 
-	modbusobjects[0] = dynamic_cast<IModbusObject*>(reginput1);
-	modbusobjects[1] = dynamic_cast<IModbusObject*>(reginput2);
-	modbusobjects[2] = dynamic_cast<IModbusObject*>(reginput3);
-	modbusobjects[3] = dynamic_cast<IModbusObject*>(regoutput1);
-	modbusobjects[4] = dynamic_cast<IModbusObject*>(owmanager);
-#endif
+	#elif defined(SMALL_SWITCH_1INPUT)
+		modbusobjectsCount = 3;
+		modbusobjects = new IModbusObject*[modbusobjectsCount];
+
+		modbusobjects[0] = dynamic_cast<IModbusObject*>(reginput1);
+		modbusobjects[1] = dynamic_cast<IModbusObject*>(regoutput1);
+		modbusobjects[2] = dynamic_cast<IModbusObject*>(owmanager);
+	#endif
+
 #elif defined BIGRELIO
 	IOPin* input1 = new IOPin(BIN_INPUT1_PORT,BIN_INPUT1_PIN,IOInput,BIN_INPUT1_BOARD_PIN);
 	IOPin* input2 = new IOPin(BIN_INPUT2_PORT,BIN_INPUT2_PIN,IOInput,BIN_INPUT2_BOARD_PIN);

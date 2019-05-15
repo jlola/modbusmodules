@@ -1,9 +1,9 @@
 #ifndef _SETTINGS_H_
 #define _SETTINGS_H_
 
-//#define SMALL_SWITCH
+#define SMALL_SWITCH
 //#define SMALL_SWITCH_1INPUT
-#define BIGRELIO
+//#define BIGRELIO
 //#define RFID
 
 /***************************************************************/

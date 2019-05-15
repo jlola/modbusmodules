@@ -15,7 +15,7 @@ USARTBase::USARTBase(USART_TypeDef* usart)
 	isinit = false;
 	baudrate = 0;
 	usart = NULL;
-	received = false;
+	isbusy = false;
 }
 
 USART_TypeDef* USARTBase::GetUsart()
@@ -25,8 +25,7 @@ USART_TypeDef* USARTBase::GetUsart()
 
 void USARTBase::ResetBusy()
 {
-	received = false;
-	//USART_ClearFlag(usart,USART_FLAG_IDLE);
+	isbusy = false;
 	//ReceiveEnable(false);
 	//DMA1_Channel3->CNDTR = 255;
 	//ReceiveEnable(true);
@@ -34,7 +33,7 @@ void USARTBase::ResetBusy()
 
 void USARTBase::SetBusy()
 {
-	received = true;
+	isbusy = true;
 }
 
 bool USARTBase::IsIdle()
@@ -48,10 +47,14 @@ bool USARTBase::IsIdle()
 
 bool USARTBase::IsBusy()
 {
-	return received;//DMA1_Channel3->CNDTR < 255;
-	//FlagStatus status = USART_GetFlagStatus(usart,USART_FLAG_NE);
-	//if (status==SET)
-		//return true;
+	FlagStatus busy = USART_GetFlagStatus(usart,USART_FLAG_BUSY);
+	if (busy==SET)
+	{
+		isbusy = true;
+	}
+	return isbusy;//DMA1_Channel3->CNDTR < 255;
+
+
 
 	//return false;
 }

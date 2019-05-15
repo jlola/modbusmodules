@@ -23,6 +23,12 @@
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#define BROADCAST_ADDRESS 	0x01
+
+#define TX_ADDRESS_POS 		0x00
+#define TX_FUNC_POS 		0x01
+
+#define MODBUS_FUNC_READ_HOLDINGS		0x03
 //#include "IModbusRegister.h"
 
 //using namespace srutil;
@@ -58,6 +64,7 @@
 
 class SlaveRtu : public IModbusSlave
 {
+	uint8_t _address;
 	int resolversCount;
 	IModbusObject** writeResolvers;
 	RS485 & _usart;
@@ -73,35 +80,16 @@ public:
 	void setAddress(uint8_t address);
 	void handler(const uint8_t* pchar, uint16_t length_rx);
 
-	void initBitInputs(uint16_t length);
-	void initShortInputs(uint16_t length);
-
-	void initCoils(uint16_t length);
 	void initHoldings(uint16_t length);
-
-	void setBitInput(uint16_t index, Bit state);
-	Bit getBitInput(uint16_t index);
-
-	void setShortInput(uint16_t index, uint16_t val);
-	uint16_t getShortInput(uint16_t index);
-
-	void setCoil(uint16_t index, Bit state);
-	Bit getCoil(uint16_t index);
 
 	bool setHoldingResolve(uint16_t index, uint16_t val);
 
-	bool setHolding(uint16_t index, uint16_t val);
+	bool setHolding(uint16_t index, uint16_t val,bool alarm);
 	bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length);
 	uint16_t getHolding(uint16_t index);
 protected:
 
-	bool inline IsValidAddress(uint8_t address);
-	virtual uint8_t updateBitInputs(uint16_t index, uint16_t length)
-	{
-		return 0;
-	};
-	virtual uint8_t updateShortInputs(uint16_t index, uint16_t length) {return 0;};
-	virtual uint8_t updateCoils(uint16_t index, uint16_t length) {return 0;};
+	bool inline IsValidAddress(uint8_t address, uint16_t len);
 	virtual uint8_t updateHoldings(uint16_t index, uint16_t length)
 	{
 		//if (OnUpdateHoldings!=0)
@@ -112,14 +100,7 @@ protected:
 private:
 
 	bool checkFrameCrc(const char *p, uint8_t length);
-	void appendCrcAndReply(uint8_t length_tx);
-
-	uint8_t onReadBitInputs(uint8_t * p_length_tx);
-	uint8_t onReadShortInputs(uint8_t * p_length_tx);
-
-	uint8_t onReadCoils(uint8_t * p_length_tx);
-	uint8_t onWriteSingleCoil(uint8_t * p_length_tx);
-	uint8_t onWriteMultipleCoils(uint8_t length_rx, uint8_t * p_length_tx);
+	void appendCrcAndReply(uint8_t length_tx, bool withDelay);
 
 	uint8_t onReadHoldings(uint8_t * p_length_tx);
 	uint8_t onWriteSingleHolding(uint8_t * p_length_tx);

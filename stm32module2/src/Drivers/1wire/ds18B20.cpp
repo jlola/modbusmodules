@@ -21,7 +21,7 @@ uint16_t DS18B20::GetError()
 //when is error there is written 0 otherwise 1
 void DS18B20::SetError(uint16_t error)
 {
-	slave->setHolding(baseAddr+DS18B20_ERROR,error>0?0:1);
+	slave->setHolding(baseAddr+DS18B20_ERROR,error>0?0:1,true);
 }
 
 uint16_t DS18B20::GetTemp()
@@ -32,7 +32,7 @@ bool DS18B20::SetTemp(uint16_t temp)
 {
 	if (GetTemp()!=temp)
 	{
-		slave->setHolding(baseAddr+DS18B20_TEMPER,temp);
+		slave->setHolding(baseAddr+DS18B20_TEMPER,temp,false);
 		return true;
 	}
 	return false;
@@ -49,7 +49,7 @@ void DS18B20::Init(IOneWireThread* owthread,uint8_t * owAddr,IModbusSlave* Slave
 		addr[i] = owAddr[i];
 	for(uint8_t i=0;i<4;i++)
 	{
-		slave->setHolding(baseAddr+i,ow16Addr[i]);
+		slave->setHolding(baseAddr+i,ow16Addr[i],true);
 	}
 }
 
