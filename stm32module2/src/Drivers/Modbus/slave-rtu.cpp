@@ -15,6 +15,8 @@
 #include "stm32f0xx_rcc.h"
 #include "stm32f0xx_crc.h"
 #include "diag/Trace.h"
+#include "ModbusRequest.h"
+#include "crc.h"
 
 /**
  *
@@ -33,10 +35,13 @@ uint16_t _holdings[SLAVERTU_HOLDINGS];
 
 
 
-SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address) :
-		resolversCount(0),writeResolvers(NULL),_usart(usart) {
+SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address,ITimer* timer) :
+		resolversCount(0),writeResolvers(NULL),_usart(usart),timer(timer)
+{
+	sentRequest = false;
 	_buff_rx = NULL;
 	_address = address;
+	randomTimerMS = 0;
 
 	//_holdings = NULL;
 	_holding_length = 0;
@@ -45,7 +50,18 @@ SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address) :
 
 	srand(_address);
 	setHolding(0,_address,true);
+	timer->SetTimeUs(1000);
 }
+
+void SlaveRtu::OnHWTimer(uint8_t us)
+{
+	if (randomTimerMS>0)
+		randomTimerMS--;
+	else
+		timer->Stop();
+}
+
+int in = 0;
 
 void SlaveRtu::ReceiveData()
 {
@@ -58,6 +74,56 @@ void SlaveRtu::ReceiveData()
 		handler(buffer,size);
 		_usart.RecEnable(true);
 	}
+}
+
+bool SlaveRtu::IsBusy()
+{
+	return _usart.IsBusy();
+}
+
+void SlaveRtu::SendChangedNotification()
+{
+	//ischanged
+	if (ISCHANGED)
+	{
+		if (randomTimerMS<=0)
+		{
+			sentRequest = false;
+
+			if (!IsBusy()  /* && !random timer started*/)
+			{
+				sentRequest = true;
+				ModbusRequest request;
+				request.Address = _address;
+				request.Function = 0x03;
+				request.Count = 0x0100;
+				request.StartingAddress = 0;
+				request.ModbusCRC = crc.calc((char*)&request,sizeof(request)-2);
+				handler((uint8_t*)&request,sizeof(request));
+				_usart.RecEnable(true);
+			}
+
+			randomTimerMS = RandMS();
+			timer->Start(this);
+		}
+	}
+	else
+	{
+		sentRequest = false;
+		//stop timer
+		timer->Stop();
+		randomTimerMS = 0;
+	}
+}
+
+//max 100 ms
+uint16_t SlaveRtu::RandMS()
+{
+	uint16_t max = 100;
+	uint16_t min = 50;
+	uint32_t rnd =  min + (rand() % max);
+	if (rnd > 65535) rnd = 65535;
+	return rnd;
 }
 
 SlaveRtu::~SlaveRtu() {
@@ -97,7 +163,7 @@ bool SlaveRtu::IsValidAddress(uint8_t recAddress, uint16_t len)
 {
 	if (recAddress == _address)
 		return true;
-	if (recAddress == BROADCAST_ADDRESS && _holdings[CHANGE_FLAG]!=0 && len == 8)
+	if (recAddress == BROADCAST_ADDRESS || (_holdings[CHANGE_FLAG]!=0 && len == 8))
 		return true;
 	return false;
 }
@@ -147,6 +213,7 @@ void SlaveRtu::handler(const uint8_t* pbuf, uint16_t length_rx) {
 				//if (_buff_rx[TX_ADDRESS_POS]!=BROADCAST_ADDRESS)
 				//	exception = 0x01;
 				//else
+				_usart.EndReceiving();
 				return;
 			}
 
@@ -159,9 +226,9 @@ void SlaveRtu::handler(const uint8_t* pbuf, uint16_t length_rx) {
 
 	if (_buff_tx[TX_ADDRESS_POS] > 0)
 	{
-		bool delayAllowed =	_buff_rx[TX_ADDRESS_POS]==BROADCAST_ADDRESS;
-		this->appendCrcAndReply(length_tx,delayAllowed);
+		this->appendCrcAndReply(length_tx);
 	}
+	_usart.EndReceiving();
 
 	length_rx = 0;
 }
@@ -175,12 +242,12 @@ bool SlaveRtu::checkFrameCrc(const char *p, uint8_t length) {
 	return true;
 }
 
-void SlaveRtu::appendCrcAndReply(uint8_t length_tx, bool withDelay) {
+void SlaveRtu::appendCrcAndReply(uint8_t length_tx) {
 	uint16_t v = crc.calc(_buff_tx, length_tx);
 	_buff_tx[length_tx] = lowByte(v);
 	_buff_tx[length_tx + 1] = highByte(v);
 
-	_usart.Send(_buff_tx,length_tx+2,withDelay);
+	_usart.Send(_buff_tx,length_tx+2);
 }
 
 //****************get set*****************************//

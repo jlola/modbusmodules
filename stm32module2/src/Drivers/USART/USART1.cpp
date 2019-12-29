@@ -9,8 +9,8 @@
 #include "stm32f0xx_gpio.h"
 #include "string.h"
 
-uint8_t RxBuffer[512];
-uint8_t TxBuffer[255];
+uint8_t RxBuffer[256];
+uint8_t TxBuffer[256];
 
 CUSART1::CUSART1()
 	: USARTBase::USARTBase(USART1)
@@ -56,7 +56,7 @@ void CUSART1::Init(uint32_t baudrate)
 
 	InitUsart(baudrate);
 	DMA_ConfigurationUsartReceive();
-	//DMA_ConfigurationUsartSend();
+	DMA_ConfigurationUsartSend();
 }
 
 void CUSART1::InitUsart(uint32_t pbaudrate)
@@ -229,55 +229,22 @@ void CUSART1::ReceiveEnable(bool enable)
 		DMA_Cmd(DMA1_Channel3, ENABLE);
 	}
 	else
+	{
 		DMA_Cmd(DMA1_Channel3, DISABLE);
+		DMA1_Channel3->CNDTR = sizeof(RxBuffer);
+	}
 }
 
 extern "C" void DMA1_Channel2_3_IRQHandler(void)
 {
 	if (DMA_GetITStatus(DMA1_IT_TC2)==SET)
 	{
-		DMA_ClearITPendingBit(DMA1_IT_TC2);
 		DMA_Cmd(DMA1_Channel2, DISABLE);
+		DMA_ClearITPendingBit(DMA1_IT_TC2);
 		IUSARTHandler* handler = CUSART1::Instance()->GetHandler();
 		if (handler!=NULL)
 			handler->SendingCompleted();
 	}
-}
-
-/**
- * \brief           Check for new data received with DMA
- * \note            This function must be called from DMA HT/TC and USART IDLE events
- * \note            Full source code is available in examples
- */
-void
-usart_rx_check(size_t pos) {
-    static size_t old_pos;
-    IUSARTHandler* handler = CUSART1::Instance()->GetHandler();
-    /* Calculate current position in buffer */
-    //pos = ARRAY_LEN(usart_rx_dma_buffer) - LL_DMA_GetDataLength(DMA1, LL_DMA_STREAM_1);
-    if (pos != old_pos) {                       /* Check change in received data */
-        if (pos > old_pos) {                    /* Current position is over previous one */
-            /* We are in "linear" mode, case P1, P2, P3 */
-            /* Process data directly by subtracting "pointers" */
-        	if (handler!=NULL)
-        		handler->OnReceiveData(&RxBuffer[old_pos], pos - old_pos,true);
-        } else {
-            /* We are in "overflow" mode, case P4 */
-            /* First process data to the end of buffer */
-        	if (handler!=NULL)
-        	{
-        	    handler->OnReceiveData(&RxBuffer[old_pos], sizeof(RxBuffer) - old_pos,false);
-            /* Continue with beginning of buffer */
-        	    handler->OnReceiveData(&RxBuffer[0], pos,true);
-        	}
-        }
-    }
-    old_pos = pos;                              /* Save current position as old */
-
-    /* Check and manually update if we reached end of buffer */
-    if (old_pos == sizeof(RxBuffer)) {
-        old_pos = 0;
-    }
 }
 
 // this is the interrupt request handler (IRQ) for ALL USART1 interrupts
@@ -294,15 +261,13 @@ extern "C" void USART1_IRQHandler(void)
 			handler->ReceiverTimeout();
 
 	}
-	else if(USART_GetITStatus(USART1,USART_IT_RXNE))
-	{
-		CUSART1::Instance()->SetBusy();
-		USART_ReceiveData(usart);
-	}
+//	else if(USART_GetITStatus(USART1,USART_IT_RXNE))
+//	{
+//		USART_ReceiveData(usart);
+//	}
 	else if(USART_GetITStatus(usart,USART_IT_ORE)||USART_GetFlagStatus(usart,USART_FLAG_ORE))
 	{
 		USART_ReceiveData(usart);
-		//instance->ClearQueue();
 		USART_ClearITPendingBit(usart,USART_IT_ORE);
 	}
 	else if(USART_GetITStatus(usart,USART_IT_IDLE))
@@ -310,11 +275,8 @@ extern "C" void USART1_IRQHandler(void)
 		USART_ClearITPendingBit(usart,USART_IT_IDLE);
 		DMA_Cmd(DMA1_Channel3, DISABLE);
 		auto cndtr = sizeof(RxBuffer) - DMA1_Channel3->CNDTR;
-		//DMA1_Channel3->CNDTR = sizeof(RxBuffer);
 		if (handler!=NULL)
 			handler->OnReceiveData(RxBuffer,cndtr,true);
-		//DMA_Cmd(DMA1_Channel3, ENABLE);
-		//usart_rx_check(cndtr);
 	}
 	else if(USART_GetITStatus(usart,USART_IT_NE ))
 	{

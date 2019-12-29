@@ -19,12 +19,9 @@ protected:
 	USARTBase(USART_TypeDef* usart);
 	uint32_t baudrate;
 	IUSARTHandler* handler;
-	bool isbusy;
 public:
-	void SetBusy();
 	bool IsIdle();
 	bool IsBusy();
-	void ResetBusy();
 	void HWControlledDE(bool enable);
 	bool IsInitialized();
 	USART_TypeDef* GetUsart();

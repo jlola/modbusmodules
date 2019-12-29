@@ -23,8 +23,6 @@ public:
 	virtual void HWControlledDE(bool enable)=0;
 	virtual bool IsIdle()=0;
 	virtual bool IsBusy()=0;
-	virtual void ResetBusy()=0;
-	virtual void SetBusy()=0;
 	virtual ~IUSART(){}
 };
 

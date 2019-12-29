@@ -106,11 +106,11 @@ main(int argc, char* argv[])
 //	//pin for receive enabled driving
 	IOPin recEnable(REC_ENABLE_PORT,REC_ENABLE_PIN,IOOutput,0, true);
 
-	RS485 rs485(usart1, NULL,&recEnable, 4000000/RS485_SPEED, Timer14::Instance());
+	RS485 rs485(usart1, NULL,&recEnable, 4000000/RS485_SPEED);
 
 	uint16_t old[2];
 	CFlash::Read16(old,1);
-	SlaveRtu slave(rs485,old[0]);
+	SlaveRtu slave(rs485,old[0],Timer14::Instance());
 	OneWireManager owmanager(&owthread,&slave);
 
 #ifdef STM32F030C8
@@ -133,8 +133,9 @@ main(int argc, char* argv[])
 		//usart2->Send(sentstr,0,strlen(sentstr));
 		dev.Process();
 		slave.ReceiveData();
+		slave.SendChangedNotification();
 		//int rnd = getTrueRandomNumber();
-		usart1->IsBusy();
+
 	}
 }
 

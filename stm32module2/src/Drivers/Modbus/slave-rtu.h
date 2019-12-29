@@ -62,20 +62,32 @@
 
 #define SLAVERTU_GETBYTES(x) (x + 7) >> 3
 
-class SlaveRtu : public IModbusSlave
+#define ISCHANGED _holdings[CHANGE_FLAG]!=0
+
+class SlaveRtu : public IModbusSlave, ITimerHandler
 {
+	bool sentRequest;
+	int randomTimerMS;
+	uint64_t counter;
 	uint8_t _address;
 	int resolversCount;
 	IModbusObject** writeResolvers;
 	RS485 & _usart;
+	ITimer* timer;
 public:
-	SlaveRtu(RS485 & usart, uint8_t address);
+	SlaveRtu(RS485 & usart, uint8_t address,ITimer* timer);
 	virtual ~SlaveRtu();
 
+
+	bool IsBusy();
 	void ReceiveData();
 
-	uint16_t GetMaxIndex();
+	void OnHWTimer(uint8_t us);
 
+	void SendChangedNotification();
+
+	uint16_t GetMaxIndex();
+	uint16_t RandMS();
 	void init(IModbusObject* writeResolvers[],size_t resolversCount);
 	void setAddress(uint8_t address);
 	void handler(const uint8_t* pchar, uint16_t length_rx);
@@ -100,7 +112,7 @@ protected:
 private:
 
 	bool checkFrameCrc(const char *p, uint8_t length);
-	void appendCrcAndReply(uint8_t length_tx, bool withDelay);
+	void appendCrcAndReply(uint8_t length_tx);
 
 	uint8_t onReadHoldings(uint8_t * p_length_tx);
 	uint8_t onWriteSingleHolding(uint8_t * p_length_tx);
