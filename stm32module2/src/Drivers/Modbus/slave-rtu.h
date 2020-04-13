@@ -24,7 +24,7 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #define BROADCAST_ADDRESS 	0x01
-
+#define EVENT_FUNC			0xF8
 #define TX_ADDRESS_POS 		0x00
 #define TX_FUNC_POS 		0x01
 
@@ -66,7 +66,7 @@
 
 class SlaveRtu : public IModbusSlave, ITimerHandler
 {
-	bool sentRequest;
+	int sentCounter;
 	int randomTimerMS;
 	uint64_t counter;
 	uint8_t _address;
@@ -87,7 +87,7 @@ public:
 	void SendChangedNotification();
 
 	uint16_t GetMaxIndex();
-	uint16_t RandMS();
+	uint16_t RandMS(int sentCounter);
 	void init(IModbusObject* writeResolvers[],size_t resolversCount);
 	void setAddress(uint8_t address);
 	void handler(const uint8_t* pchar, uint16_t length_rx);

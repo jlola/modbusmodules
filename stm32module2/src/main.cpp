@@ -75,7 +75,7 @@
 //#pragma GCC diagnostic ignored "-Wreturn-type"
 
 //unsigned int __attribute__((section (".b1text"))) addr __attribute__ ((aligned (4))) = 0x00000002;
-unsigned short addr __attribute__ ((section (".b1text"))) = 0x06;
+unsigned short addr __attribute__ ((section (".b1text"))) = 0x04;
 int i;
 
 int
@@ -84,8 +84,9 @@ main(int argc, char* argv[])
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOF, ENABLE);
 	trace_initialize();
 
-	//for compilation intialization of memory addr
+		//for compilation intialization of memory addr
 	i = addr;
+	std::srand(addr*100);
 
 	trace_printf("System clock: %u Hz\n", SystemCoreClock);
 

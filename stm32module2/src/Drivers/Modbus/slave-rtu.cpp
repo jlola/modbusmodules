@@ -17,6 +17,7 @@
 #include "diag/Trace.h"
 #include "ModbusRequest.h"
 #include "crc.h"
+//#include "Random.h"
 
 /**
  *
@@ -38,7 +39,7 @@ uint16_t _holdings[SLAVERTU_HOLDINGS];
 SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address,ITimer* timer) :
 		resolversCount(0),writeResolvers(NULL),_usart(usart),timer(timer)
 {
-	sentRequest = false;
+	sentCounter = 0;
 	_buff_rx = NULL;
 	_address = address;
 	randomTimerMS = 0;
@@ -48,7 +49,6 @@ SlaveRtu::SlaveRtu(RS485 & usart, uint8_t address,ITimer* timer) :
 
 	this->initHoldings(SLAVERTU_HOLDINGS);
 
-	srand(_address);
 	setHolding(0,_address,true);
 	timer->SetTimeUs(1000);
 }
@@ -88,28 +88,26 @@ void SlaveRtu::SendChangedNotification()
 	{
 		if (randomTimerMS<=0)
 		{
-			sentRequest = false;
-
 			if (!IsBusy()  /* && !random timer started*/)
 			{
-				sentRequest = true;
+				sentCounter++;
 				ModbusRequest request;
 				request.Address = _address;
-				request.Function = 0x03;
-				request.Count = 0x0100;
+				request.Function = EVENT_FUNC;//has to be reversed
+				request.Count = 0x0100;//has to be reversed
 				request.StartingAddress = 0;
 				request.ModbusCRC = crc.calc((char*)&request,sizeof(request)-2);
 				handler((uint8_t*)&request,sizeof(request));
 				_usart.RecEnable(true);
 			}
 
-			randomTimerMS = RandMS();
+			randomTimerMS = RandMS(sentCounter);
 			timer->Start(this);
 		}
 	}
 	else
 	{
-		sentRequest = false;
+		sentCounter = 0;
 		//stop timer
 		timer->Stop();
 		randomTimerMS = 0;
@@ -117,11 +115,11 @@ void SlaveRtu::SendChangedNotification()
 }
 
 //max 100 ms
-uint16_t SlaveRtu::RandMS()
+uint16_t SlaveRtu::RandMS(int sentCounter)
 {
-	uint16_t max = 100;
+	uint16_t max = sentCounter < 20 ? 100 : 10000;
 	uint16_t min = 50;
-	uint32_t rnd =  min + (rand() % max);
+	uint32_t rnd =  min + std::rand() % max;
 	if (rnd > 65535) rnd = 65535;
 	return rnd;
 }
@@ -163,8 +161,6 @@ bool SlaveRtu::IsValidAddress(uint8_t recAddress, uint16_t len)
 {
 	if (recAddress == _address)
 		return true;
-	if (recAddress == BROADCAST_ADDRESS || (_holdings[CHANGE_FLAG]!=0 && len == 8))
-		return true;
 	return false;
 }
 
@@ -191,6 +187,7 @@ void SlaveRtu::handler(const uint8_t* pbuf, uint16_t length_rx) {
 //			case 0x02:
 //				exception = onReadBitInputs(&length_tx);
 //				break;
+			case EVENT_FUNC:
 			case MODBUS_FUNC_READ_HOLDINGS:
 				exception = onReadHoldings(&length_tx);
 				break;
@@ -282,6 +279,7 @@ uint8_t SlaveRtu::onReadHoldings(uint8_t * p_length_tx) {
 
 	_buff_tx[2] = length * 2;
 	*p_length_tx = _buff_tx[2] + 3;
+
 	return 0;
 }
 
