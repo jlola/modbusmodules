@@ -338,9 +338,11 @@ bool SlaveRtu::setHolding(uint16_t index, uint16_t val,bool alarm) {
 	return true;
 }
 
-bool SlaveRtu::setHoldings(uint16_t index, uint16_t* buffer,uint16_t length)
+bool SlaveRtu::setHoldings(uint16_t index, uint16_t* buffer,uint16_t length, bool alarm)
 {
 	memcpy(&_holdings[index],buffer,length*2);
+	if (alarm)
+		_holdings[CHANGE_FLAG] = 1;
 	return true;
 }
 

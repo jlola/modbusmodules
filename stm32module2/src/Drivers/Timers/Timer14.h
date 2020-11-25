@@ -21,6 +21,7 @@ class Timer14  : public ITimer
 		uint16_t timeus;
 		Timer14();
 	public:
+		static TIM_TypeDef* tim;
 		static Timer14* Instance();
 		void SetReceiver(ITimerHandler* prec);
 		void Stop();

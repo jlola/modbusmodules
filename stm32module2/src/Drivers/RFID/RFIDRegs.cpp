@@ -33,6 +33,16 @@ bool RFIDRegs::Write(uint16_t index, uint16_t value)
 	return false;
 }
 
+void RFIDRegs::SendingCompleted()
+{
+
+}
+
+void RFIDRegs::OnReceiveData(uint8_t* data, uint16_t size, bool completed)
+{
+
+}
+
 void RFIDRegs::OnReceiveData(char data)
 {
 	if (!timer->IsStarted())
@@ -59,7 +69,7 @@ void RFIDRegs::ReceiverTimeout()
 bool RFIDRegs::Refresh()
 {
 	//uint16_t reg = slave->getHolding(offset);
-	this->slave->setHoldings(offset,(uint16_t*)&regs,sizeof(regs)/2);
+	this->slave->setHoldings(offset,(uint16_t*)&regs,sizeof(regs)/2, true);
 	if (regs.NewDataFlag)
 		return true;
 	return false;

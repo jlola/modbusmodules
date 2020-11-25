@@ -40,6 +40,8 @@ public:
 
 	void OnHWTimer(uint8_t us);
 	void OnReceiveData(char data);
+	void OnReceiveData(uint8_t* data, uint16_t size, bool completed);
+	void SendingCompleted();
 	void ReceiverTimeout();
 	bool IsValid(uint16_t index, uint16_t value);
 	bool Write(uint16_t index, uint16_t value);

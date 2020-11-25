@@ -75,7 +75,7 @@
 //#pragma GCC diagnostic ignored "-Wreturn-type"
 
 //unsigned int __attribute__((section (".b1text"))) addr __attribute__ ((aligned (4))) = 0x00000002;
-unsigned short addr __attribute__ ((section (".b1text"))) = 0x04;
+unsigned short addr __attribute__ ((section (".b1text"))) = 0x02;
 int i;
 
 int

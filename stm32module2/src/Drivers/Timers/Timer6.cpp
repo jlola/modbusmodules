@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <Timer6.h>
 
-TIM_TypeDef* tim = TIM6;
+TIM_TypeDef* Timer6::tim = TIM6;
 
 Timer6::Timer6()
 	: rec(NULL),started(false),timeus(0)
@@ -54,7 +54,7 @@ void Timer6::Init()
 	TIM_Cmd(tim, DISABLE);
 
 	NVIC_InitTypeDef nvicStructure;
-	nvicStructure.NVIC_IRQChannel = TIM6_IRQn;
+	nvicStructure.NVIC_IRQChannel = IRQn::TIM6_IRQn;
 
 	//nvicStructure.NVIC_IRQChannelPreemptionPriority = configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY;;
 	nvicStructure.NVIC_IRQChannelPriority = 2;
@@ -107,15 +107,15 @@ bool Timer6::IsStarted()
 
 extern "C" void TIM6_IRQHandler()
 {
-    if (TIM_GetITStatus(tim, TIM_IT_Update) != RESET)
+    if (TIM_GetITStatus(Timer6::tim, TIM_IT_Update) != RESET)
     {
     	ITimerHandler* handler = Timer6::Instance()->rec;
-        TIM_ClearITPendingBit(tim, TIM_IT_Update);
+        TIM_ClearITPendingBit(Timer6::tim, TIM_IT_Update);
         if (handler!=NULL)
         	handler->OnHWTimer(1);
     }
 
-    TIM_ClearITPendingBit(tim, TIM_IT_Trigger | TIM_IT_Break | TIM_IT_COM | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 );
+    TIM_ClearITPendingBit(Timer6::tim, TIM_IT_Trigger | TIM_IT_Break | TIM_IT_COM | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 );
 }
 
 Timer6::~Timer6()

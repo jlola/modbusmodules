@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <Timer14.h>
 
-TIM_TypeDef* tim = TIM14;
+TIM_TypeDef* Timer14::tim = TIM14;
 
 Timer14::Timer14()
 	: rec(NULL),started(false),timeus(0)
@@ -111,15 +111,15 @@ bool Timer14::IsStarted()
 
 extern "C" void TIM14_IRQHandler()
 {
-    if (TIM_GetITStatus(tim, TIM_IT_Update) != RESET)
+    if (TIM_GetITStatus(Timer14::tim, TIM_IT_Update) != RESET)
     {
     	ITimerHandler* handler = Timer14::Instance()->rec;
-        TIM_ClearITPendingBit(tim, TIM_IT_Update);
+        TIM_ClearITPendingBit(Timer14::tim, TIM_IT_Update);
         if (handler!=NULL)
         	handler->OnHWTimer(1);
     }
 
-    TIM_ClearITPendingBit(tim, TIM_IT_Trigger | TIM_IT_Break | TIM_IT_COM | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 );
+    TIM_ClearITPendingBit(Timer14::tim, TIM_IT_Trigger | TIM_IT_Break | TIM_IT_COM | TIM_IT_CC1 | TIM_IT_CC2 | TIM_IT_CC3 | TIM_IT_CC4 );
 }
 
 Timer14::~Timer14()

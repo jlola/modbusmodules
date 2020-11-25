@@ -33,7 +33,7 @@ public:
 	virtual void init(IModbusObject* writeResolvers[], size_t count)=0;
 
 	virtual bool setHolding(uint16_t index, uint16_t val, bool triggerChange)=0;
-	virtual bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length)=0;
+	virtual bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length, bool triggerChange)=0;
 
 	virtual uint16_t getHolding( uint16_t index)=0;
 

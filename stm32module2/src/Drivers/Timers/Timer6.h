@@ -16,6 +16,7 @@ class Timer6 : public ITimer
 	Timer6();
 public:
 	static Timer6* Instance();
+	static TIM_TypeDef* tim;
 	void SetReceiver(ITimerHandler* prec);
 	void Stop();
 	void Start(ITimerHandler* t);

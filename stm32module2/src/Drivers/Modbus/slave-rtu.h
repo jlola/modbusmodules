@@ -97,7 +97,7 @@ public:
 	bool setHoldingResolve(uint16_t index, uint16_t val);
 
 	bool setHolding(uint16_t index, uint16_t val,bool alarm);
-	bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length);
+	bool setHoldings(uint16_t index, uint16_t* buffer,uint16_t length, bool alarm);
 	uint16_t getHolding(uint16_t index);
 protected:
 
