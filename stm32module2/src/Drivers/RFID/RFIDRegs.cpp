@@ -15,6 +15,7 @@ RFIDRegs::RFIDRegs(IUSART *usart, IModbusSlave* pslave, ITimer* ptimer)
 	memset(&regs,0x00,sizeof(regs));
 	this->usart = usart;
 	usart->SetHandler(this);
+	newToHoldings = false;
 }
 
 bool RFIDRegs::IsValid(uint16_t index, uint16_t value)
@@ -28,6 +29,7 @@ bool RFIDRegs::Write(uint16_t index, uint16_t value)
 	if (index==this->offset && value == 0)
 	{
 		regs.NewDataFlag = 0;
+		this->slave->setHoldings(offset,(uint16_t*)&regs,sizeof(regs)/2, false);
 		return true;
 	}
 	return false;
@@ -62,16 +64,20 @@ void RFIDRegs::ReceiverTimeout()
 {
 	regs.buffer[bufferIndex+1] = '\0';
 	bufferIndex = 0;
-	regs.NewDataFlag = 1;
+	newToHoldings = true;
 	//trace_puts((const char*)regs.buffer);
 }
 
 bool RFIDRegs::Refresh()
 {
 	//uint16_t reg = slave->getHolding(offset);
-	this->slave->setHoldings(offset,(uint16_t*)&regs,sizeof(regs)/2, true);
-	if (regs.NewDataFlag)
+	if (newToHoldings)
+	{
+		newToHoldings = false;
+		regs.NewDataFlag = 1;
+		this->slave->setHoldings(offset,(uint16_t*)&regs,sizeof(regs)/2, true);
 		return true;
+	}
 	return false;
 }
 

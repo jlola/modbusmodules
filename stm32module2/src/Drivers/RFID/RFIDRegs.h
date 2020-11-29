@@ -28,6 +28,7 @@ class RFIDRegs : public IWriteReg, public IUSARTHandler, public ITimerHandler
 {
 	friend class RFIDRegs_test;
 public:
+	bool newToHoldings;
 	SRFIDRegs regs;
 	uint8_t bufferIndex;
 	IUSART *usart;
